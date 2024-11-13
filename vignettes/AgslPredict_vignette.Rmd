@@ -1,0 +1,185 @@
+---
+title: "Vignette for AgslPredict"
+author: "Geoffrey R. Hosack and Maud El-Hachem"
+date: "2024-11-11"
+bibliography: AgslPredict_refs.bib
+---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Vignette for AgslPredict}
+-->
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>"
+)
+```
+
+# Outline
+
+This vignette documents the code and data provided by package **AgslPredict** as supplementary material for the paper ``Prediction of dominant mosquito-borne disease vectors in *Anopheles gambiae* sensu lato''. The underlying response data requires multiple downloads and some of the analyses were implemented on advanced computing facilities. The scripts and previously downloaded data are therefore stored in top level directories of this package, which are referenced in this vignette. The scripts refer to files in the different directories to build dataframes and execute analysis that may use high performance computing facilities.
+
+* [01 Relative Abundance Data] 
+* [02 Relative Abundance Analysis] 
+* [03 Abundance Data] 
+* [04 Abundance Analysis]
+* [05 Prediction]
+
+Please see file LICENSE included with the **AgslPredict** package for license information, data sources and citations.
+
+# 01 Relative Abundance Data
+
+The raw data used for relative abundance are available at <https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz>. The R script that downloads and processes these data for analysis is available in this package by executing
+```{r ra, eval = FALSE}
+system.file(package = "AgslPredict", "01-RelativeAbundanceData/")
+```
+
+VectorBase identified species for many samples of *An. gambiae* sensu lato (s.l.). Samples identified by chromosomal forms were related to species: "Anopheles gambiae chromosomal form Bamako" and "Anopheles gambiae chromosomal form Savanna" was assigned to "Anopheles gambiae sensu stricto", and "Anopheles gambiae chromosomal form Mopti" was assigned to "Anopheles coluzzii". The three species retained for analysis were "Anopheles arabiensis", "Anopheles coluzzii" and "Anopheles gambiae sensu stricto".
+
+Samples initially filtered out of the database were those with no information for date of collection (1\%) or only years (1\%). Of the remainder, about 14\% were reported to the month, 53\% were reported to the day, and 23\% were reported as a duration between two dates. Of the latter, 94\% of the durations between dates were one day or less (i.e., collection during a day or overnight). The start and end date of these records were extracted. Samples reported to the level of one month were assigned start and end dates that corresponded with the start and end date of the reported month. Remaining samples with durations greater than 31 days (10\%) were filtered out of the dataset. Samples with initial dates occurring before 2001 were omitted.
+
+Samples were then identified by project ID, latitude and longitude, collection date and collection protocol to define the unit of analysis. The frequency counts of the three species identified for each unit sample were then recorded. Sample units with shared collection dates and collection methods were then aggregated to 5 km x 5 km grid cells across the spatial extent of the analysis. The grid cell file is found at 
+```{r gc,eval=FALSE}
+system.file(package = "AgslPredict", "covariates_spatial/active.csv")
+```
+
+## Covariate Data for Relative Abundance
+
+The relative abundance data incorporates meteorological information with download script located at
+
+```{r mcvar,eval=FALSE}
+system.file(package = "AgslPredict", 
+            "meteo_for_relative_abundance/meteo_download_RelativeAbundance.R")
+```
+
+Spatial covariate data are stored at
+
+```{r dat1, eval = FALSE}
+system.file(package = "AgslPredict", "covariates_spatial")
+```
+
+
+The covariate data for the relative abundance data analysis are integrated into the dataset using the script found at
+```{r rac,eval=FALSE}
+system.file(package = "AgslPredict", "01-RelativeAbundanceData/RelativeAbundanceDataCovariates.R")
+```
+
+
+# 02 Relative Abundance Analysis
+
+The R script that analyses the relative abundance data for analysis is located at
+```{r raa, eval = FALSE}
+system.file(package = "AgslPredict", 
+            "02-RelativeAbundanceAnalysis/relative_abundance_analysis_1m.R")
+```
+
+This script reads in the relative abundance data and covariates. A series of multinomial logit GLMs are then fit using a backward stepwise BIC procedure on two groups of models:
+
+1. 1 month windowed meteorological covariates without transformations;
+2. 1 month windowed meteorological covariates, with log-one-plus transformation of all nonnegative covariates.
+
+The best fitting model was found in group 1). The best fitting model included all possible covariates and most interactions and squared terms. The directory includes spatial plots of residuals by species, model predictions by species assuming most recent survey year and observed data by species. 
+
+The best fitting model object is stored at
+```{r rab, eval = FALSE}
+system.file(package = "AgslPredict", 
+            "02-RelativeAbundanceAnalysis/multinomialGLMfit1m.rds")
+```
+
+
+# 03 Abundance Data
+
+The R script that analyses the abundance data and covariates for analysis is located at
+```{r adat, eval = FALSE}
+system.file(package = "AgslPredict", 
+            "03-AbundanceData/AbundancePrep.R")
+```
+
+This script creates afile ("03-AbundanceData/abundance.rds") that is sourced by the compilation script for meteorological covariates at
+
+```{r apdat, eval = FALSE}
+system.file(package = "AgslPredict", 
+            "meteo_for_abundance/meteo_abundance_download.R")
+```
+
+The abundance data, meteorological covariate data and spatial covariates are integrated into a single dataset by the script located at
+```{r spac, eval = FALSE}
+system.file(package = "AgslPredict", 
+            "03-AbundanceData/AbundanceCovarPrep.R")
+```
+
+# 04 Abundance Analysis
+
+The abundance analysis uses the script
+
+```{r aanalysis, eval = FALSE}
+system.file(package = "AgslPredict", 
+            "04-AbundanceAnalysis/agsl_negbinom.R")
+```
+
+# 05 Prediction
+
+## Meteorological Data for Prediction
+
+The meteorological data files used for prediction were sourced using the script at
+```{r dat3s, eval = FALSE}
+system.file(package = "AgslPredict",
+            "meteo_prediction_raw/download_from_power.R")
+```
+
+## Spatio-Temporal Predictions
+
+The predictions were processed on high performance computing by the following scripts.
+
+```{r pred1, eval = FALSE}
+system.file(package = "AgslPredict",
+            "05-Prediction/prediction_tot_relabund.R")
+```
+
+The above script sources the prediction function at 
+```{r pred2, eval = FALSE}
+system.file(package = "AgslPredict",
+            "05-Prediction/pXPrediction_function.R")
+```
+
+The following script defines the temperature threshold mask for predictions at
+```{r pred2a, eval = FALSE}
+system.file(package = "AgslPredict",
+            "05-Prediction/tempMask.R")
+```
+
+The script for plots of predictions is located at
+```{r pred3, eval = FALSE}
+system.file(package = "AgslPredict",
+            "05-Prediction/prediction_plots.R")
+```
+
+Niche overlap and competition estimates are located at
+```{r pred4, eval = FALSE}
+system.file(package = "AgslPredict",
+            "05-Prediction/analysisSpec.R")
+```
+
+## Covariate Plots
+
+Visualisations for the meteorological data are created by the preprocessing script located at
+```{r metprep,eval=FALSE}
+system.file(package = "AgslPredict",
+            "covar_plots/calc_metavg.R")
+```
+
+Summary plots of the meteorological data are created by the script
+```{r metplots,eval=FALSE}
+system.file(package = "AgslPredict", "covar_plots/met_plots.R")
+```
+
+Plots for spatial covariates are created by the script located at
+```{r spatplots,eval=FALSE}
+system.file(package = "AgslPredict", "covar_plots/spatial_plots.R")
+```
+
+

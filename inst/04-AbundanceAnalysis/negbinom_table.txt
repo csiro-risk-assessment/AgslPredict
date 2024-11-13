@@ -1,0 +1,46 @@
+
+\begin{table}
+\begin{center}
+\begin{tabular}{l c}
+\hline
+ & Model 1 \\
+\hline
+(Intercept)    & $1.38^{***}$   \\
+               & $(0.11)$       \\
+light          & $-0.67^{***}$  \\
+               & $(0.10)$       \\
+exit           & $-0.40^{**}$   \\
+               & $(0.12)$       \\
+PSC            & $-0.74^{***}$  \\
+               & $(0.14)$       \\
+animal         & $0.66^{***}$   \\
+               & $(0.15)$       \\
+pit            & $-1.23^{***}$  \\
+               & $(0.16)$       \\
+outdoor        & $0.22$         \\
+               & $(0.12)$       \\
+precip         & $15.62^{***}$  \\
+               & $(0.90)$       \\
+precip$^2$     & $-12.12^{***}$ \\
+               & $(0.79)$       \\
+pop            & $-0.49^{*}$    \\
+               & $(0.21)$       \\
+precip:lat     & $-3.79^{***}$  \\
+               & $(0.87)$       \\
+precip:elev    & $-4.52^{***}$  \\
+               & $(1.03)$       \\
+precip:temp    & $-8.00^{***}$  \\
+               & $(1.57)$       \\
+\hline
+AIC            & $60670.79$     \\
+BIC            & $60770.42$     \\
+Log Likelihood & $-30321.40$    \\
+Deviance       & $9709.97$      \\
+Num. obs.      & $9105$         \\
+\hline
+\multicolumn{2}{l}{\scriptsize{$^{***}p<0.001$; $^{**}p<0.01$; $^{*}p<0.05$}}
+\end{tabular}
+\caption{Negative binomial GLM with estimated overdipersion parameter of 0.232.}
+\label{table:coefficients}
+\end{center}
+\end{table}

@@ -1,0 +1,32 @@
+% latex table generated in R 4.4.1 by xtable 1.8-4 package
+% Fri Oct 18 16:17:02 2024
+\begin{table}[ht]
+\centering
+\begingroup\small
+\begin{tabular}{ll}
+  \hline
+Projects & Citations \\ 
+  \hline
+VBP0000614 & DOI:10.1186/1475-2875-12-24,DOI:10.1186/1475-2875-9-187 \\ 
+  VBP0000774 &  \\ 
+  VBP0000624 & DOI:10.1186/1475-2875-13-27 \\ 
+  VBP0000686 & DOI:10.1111/j.1948-7134.2011.00179.x,DOI:10.1111/mve.12084 \\ 
+  VBP0000620 & DOI:10.1186/1475-2875-7-138 \\ 
+  VBP0000714 & DOI:10.1186/s13071-020-04403-9 \\ 
+  VBP0000782 &  \\ 
+  VBP0000786 &  \\ 
+  VBP0000621 & DOI:10.1111/j.1365-2915.2006.652.x \\ 
+  VBP0000626 & DOI:10.1186/1471-2334-10-119 \\ 
+  VBP0000616 & DOI:10.1186/1471-2334-12-275,DOI:10.1186/1756-3305-6-10 \\ 
+  VBP0000812 & DOI:10.1073/pnas.2104282119 \\ 
+  VBP0000770 &  \\ 
+  VBP0000701 & DOI:10.1186/1475-2875-13-111 \\ 
+  VBP0000627 & DOI:10.1371/journal.pmed.1002167 \\ 
+  VBP0000649 & DOI:10.1186/s12936-019-3076-4 \\ 
+  VBP0000780 & https://www.niaid.nih.gov/research/east-africa-international-center-excellence-malaria-research \\ 
+  VBP0000267 & DOI:10.1371/journal.pmed.1002167 \\ 
+   \hline
+\end{tabular}
+\endgroup
+\caption{Caption here} 
+\end{table}

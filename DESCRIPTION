@@ -1,0 +1,43 @@
+Package: AgslPredict
+Type: Package
+Date: 2024-11-13
+Title: Code and data for predictions of Anopheles gambiae sensu lato
+Version: 0.3.0
+Authors@R: c(person(c("Geoffrey", "R."), "Hosack", email = 
+  "geoff.hosack@csiro.au", role = c("aut", "cre"), comment = 
+  c(ORCID = "0000-0002-6462-6817")),
+  person("Maud", "El-Hachem", email = "maud.el-hachem@csiro.au",
+  role = "aut", comment = c(ORCID = "0000-0002-9312-6109")))
+Maintainer: Geoff Hosack <geoff.hosack@csiro.au>
+Copyright: Commonwealth Scientific and Industrial Research Organisation (CSIRO) 
+  ABN 41 687 119 230
+Description: Estimation, prediction and stability analysis for Anopheles gambiae
+   sensu lato.
+Imports:
+  data.table,
+  dplyr,
+  glm2,
+  ggplot2,
+  gridExtra,
+  lubridate,
+  MASS,
+  nnet,
+  rasterVis,
+  RColorBrewer,
+  rnaturalearth,
+  rnaturalearthdata,
+  R.utils,
+  sf,
+  Ternary,
+  terra,
+  viridisLite,
+  xtable,
+  zoo
+Suggests:
+  knitr,
+  rmarkdown
+License: GPL-3 + file LICENSE
+URL: https://github.com/csiro-risk-assessment/AgslPredict
+Encoding: UTF-8
+LazyData: true
+VignetteBuilder: knitr
