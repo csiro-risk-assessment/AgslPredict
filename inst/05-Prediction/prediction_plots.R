@@ -163,12 +163,17 @@ res.r <- project(results.r, "epsg:4326")
 
 # plots ------------------------------------------------------------------------
 
+library(rnaturalearth)
 library(rasterVis)
+library(latticeExtra)
 
 RColorBrewer::display.brewer.all(n=7, type="seq", select=NULL, exact.n=TRUE,
                                                      colorblindFriendly=TRUE)
 RColorBrewer::display.brewer.all(n=7, type="div", select=NULL, exact.n=TRUE,
                                  colorblindFriendly=TRUE)
+
+# shoreline from rnaturalearth
+shore <- ne_coastline(scale = "medium", returnclass = "sv")
 
 ## annual ----------------------------------------------------------------------
 
@@ -204,7 +209,7 @@ levelplot(res.r[[c("Aa_mean", "Ac_mean", "Ag_mean")]],
               labels = labs
             )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 
 ## quarterly -------------------------------------------------------------------
@@ -232,7 +237,7 @@ levelplot(res.r[[c("Aa_Q1", "Aa_Q2", "Aa_Q3", "Aa_Q4")]],
               labels = labs
             )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 png("Q_Ac.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Ac_Q1", "Ac_Q2", "Ac_Q3", "Ac_Q4")]],
@@ -249,7 +254,7 @@ levelplot(res.r[[c("Ac_Q1", "Ac_Q2", "Ac_Q3", "Ac_Q4")]],
               labels = labs
             )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 png("Q_Ag.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Ag_Q1", "Ag_Q2", "Ag_Q3", "Ag_Q4")]],
@@ -266,7 +271,7 @@ levelplot(res.r[[c("Ag_Q1", "Ag_Q2", "Ag_Q3", "Ag_Q4")]],
               labels = labs
             )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 
 ## anomalies -------------------------------------------------------------------
@@ -304,7 +309,7 @@ levelplot(res.r[[c("Aa_anom2002", "Aa_anom2008", "Aa_anom2014", "Aa_anom2020")]]
               labels = labs
             )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 png("Anom_Ac.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Ac_anom2002", "Ac_anom2008", "Ac_anom2014", "Ac_anom2020")]],
@@ -321,7 +326,7 @@ levelplot(res.r[[c("Ac_anom2002", "Ac_anom2008", "Ac_anom2014", "Ac_anom2020")]]
               labels = labs
             )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 png("Anom_Ag.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Ag_anom2002", "Ag_anom2008", "Ag_anom2014", "Ag_anom2020")]],
@@ -338,7 +343,7 @@ levelplot(res.r[[c("Ag_anom2002", "Ag_anom2008", "Ag_anom2014", "Ag_anom2020")]]
               labels = labs
             )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 
 ## raw rel abundance------------------------------------------------------------
@@ -372,7 +377,7 @@ levelplot(res.r[[c("Aa_r", "Ac_r", "Ag_r")]],
               labels = labs
             )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 
 ## predicted variance raw rel abundance ----------------------------------------
@@ -387,7 +392,7 @@ levelplot(res.r[[c("logAcAa_v", "logAgAa_v")]],
           ),
           layout = c(2, 1),
           zscaleLog = TRUE
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 
 
@@ -405,7 +410,7 @@ levelplot(log(res.r[["tot_mean"]]),
                           labels = c(1, 2, 4, 8, 16, 32)
                           )
           )
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 
 ## predicted variance total abundance ------------------------------------------
@@ -416,6 +421,6 @@ levelplot(res.r[["tot_v"]],
           main = "Predicted per person average variance of log abundance",
           margin = FALSE,
           zscaleLog = TRUE
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 
