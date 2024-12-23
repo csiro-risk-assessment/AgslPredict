@@ -195,9 +195,9 @@ par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(res.r[[c("Aa_mean", "Ac_mean", "Ag_mean")]],
           main = "Annual average abundance",
           names.attr = c(
-            expression(italic("A. arabiensis")),
-            expression(italic("A. coluzzii")),
-            expression(italic("A. gambiae")~s.s.)
+            expression(italic("An. arabiensis")),
+            expression(italic("An. coluzzii")),
+            expression(italic("An. gambiae")~s.s.)
           ),
           layout = c(3, 1),
           par.settings = ann.theme,
@@ -225,7 +225,7 @@ quart.theme <- rasterTheme(
 png("Q_Aa.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Aa_Q1", "Aa_Q2", "Aa_Q3", "Aa_Q4")]],
           main = expression(paste("Quarterly average abundance: ",
-                                  italic("A. arabiensis"))),
+                                  italic("An. arabiensis"))),
           names.attr = paste0("Q", 1:4),
           layout = c(2, 2),
           par.settings = quart.theme,
@@ -242,7 +242,7 @@ dev.off()
 png("Q_Ac.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Ac_Q1", "Ac_Q2", "Ac_Q3", "Ac_Q4")]],
           main = expression(paste("Quarterly average abundance: ",
-                                  italic("A. coluzzii"))),
+                                  italic("An. coluzzii"))),
           names.attr = paste0("Q", 1:4),
           layout = c(2, 2),
           par.settings = quart.theme,
@@ -259,7 +259,7 @@ dev.off()
 png("Q_Ag.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Ag_Q1", "Ag_Q2", "Ag_Q3", "Ag_Q4")]],
           main = expression(paste("Quarterly average abundance: ",
-                                  italic("A. gambiae"), " s.s.")),
+                                  italic("An. gambiae"), " s.s.")),
           names.attr = paste0("Q", 1:4),
           layout = c(2, 2),
           par.settings = quart.theme,
@@ -297,7 +297,7 @@ anom.theme <- rasterTheme(
 png("Anom_Aa.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Aa_anom2002", "Aa_anom2008", "Aa_anom2014", "Aa_anom2020")]],
           main = expression(paste("Anomaly relative to 2002-2020 average: ",
-                                  italic("A. arabiensis"))),
+                                  italic("An. arabiensis"))),
           names.attr = c("2002", "2008", "2014", "2020"),
           layout = c(2, 2),
           par.settings = anom.theme,
@@ -314,7 +314,7 @@ dev.off()
 png("Anom_Ac.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Ac_anom2002", "Ac_anom2008", "Ac_anom2014", "Ac_anom2020")]],
           main = expression(paste("Anomaly relative to 2002-2020 average: ",
-                                  italic("A. coluzzii"))),
+                                  italic("An. coluzzii"))),
           names.attr = c("2002", "2008", "2014", "2020"),
           layout = c(2, 2),
           par.settings = anom.theme,
@@ -331,7 +331,7 @@ dev.off()
 png("Anom_Ag.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
 levelplot(res.r[[c("Ag_anom2002", "Ag_anom2008", "Ag_anom2014", "Ag_anom2020")]],
           main = expression(paste("Anomaly relative to 2002-2020 average: ",
-                                  italic("A. gambiae"), " s.s.")),
+                                  italic("An. gambiae"), " s.s.")),
           names.attr = c("2002", "2008", "2014", "2020"),
           layout = c(2, 2),
           par.settings = anom.theme,
@@ -363,9 +363,9 @@ par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(res.r[[c("Aa_r", "Ac_r", "Ag_r")]],
           main = "Predicted relative abundance",
           names.attr = c(
-            expression(italic("A. arabiensis")),
-            expression(italic("A. coluzzii")),
-            expression(italic("A. gambiae")~s.s.)
+            expression(italic("An. arabiensis")),
+            expression(italic("An. coluzzii")),
+            expression(italic("An. gambiae")~s.s.)
           ),
           layout = c(3, 1),
           par.settings = ann.theme,
@@ -387,8 +387,8 @@ par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(res.r[[c("logAcAa_v", "logAgAa_v")]],
           main = "Average prediction variance",
           names.attr = c(
-            expression(paste("log ", italic("A. coluzzii") / italic("A. arabiensis"))),
-            expression(paste("log ", italic("A. gambiae")~s.s. / italic("A. arabiensis")))
+            expression(paste("log ", italic("An. coluzzii") / italic("An. arabiensis"))),
+            expression(paste("log ", italic("An. gambiae")~s.s. / italic("An. arabiensis")))
           ),
           layout = c(2, 1),
           zscaleLog = TRUE
