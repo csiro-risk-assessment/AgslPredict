@@ -1,6 +1,6 @@
 Package: AgslPredict
 Type: Package
-Date: 2025-04-15
+Date: 2025-05-15
 Title: Code and data for predictions of Anopheles gambiae sensu lato
 Version: 0.4.0
 Authors@R: c(person(c("Geoffrey", "R."), "Hosack", email = 
@@ -11,9 +11,9 @@ Authors@R: c(person(c("Geoffrey", "R."), "Hosack", email =
 Copyright: Commonwealth Scientific and Industrial Research Organisation (CSIRO) 
   ABN 41 687 119 230
 Description: Supporting code for estimation, prediction and stability analysis
-  for the three primary vectors of Anopheles gambiae sensu lato, see See Hosack 
-  et al. (2025) "Prediction of mosquito vector abundance for three species in 
-  the Anopheles gambiae complex", bioRxiv, <doi:10.1101/2025.03.04.641552>.
+  for the three primary vectors of Anopheles gambiae sensu lato. See Hosack et 
+  al. (2025) "Prediction of mosquito vector abundance for three species in the 
+  Anopheles gambiae complex", bioRxiv, <doi:10.1101/2025.03.04.641552>.
 Imports:
   data.table,
   dplyr,
