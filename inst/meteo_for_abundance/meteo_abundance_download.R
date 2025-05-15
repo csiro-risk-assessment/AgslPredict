@@ -1,6 +1,6 @@
 # download of precip for abundance analysis
 
-# accessed 7 June 2024
+# accessed 2 April 2025
 # data are WGS84
 # https://power.larc.nasa.gov/docs/methodology/
 

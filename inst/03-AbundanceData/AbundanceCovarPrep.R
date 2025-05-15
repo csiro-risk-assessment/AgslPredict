@@ -71,23 +71,13 @@ all.equal(abund, pabund[ , names(abund)])
 # Lambert azimuthal equal area
 # see Steinwand et al. (1995)
 
-crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
-
-# use  limits denoted in first line of csv files
-# should read: #xmin=-4099134.0	ymin=-4202349.0	cell_size=5000.0	nx=1520	ny=1280
-
-# check active cells for correct extent info
-all(read.csv("../covariates_spatial/active.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-# read in spatial scope of RA in projected CRS
-active <- read.csv("../covariates_spatial/active.csv", skip = 1, header = FALSE)
-all.equal(dim(active), c(1280, 1520)) # expecting same number of rows and columns for all covariate data
-active <- as.matrix(active)
 library(terra)
-# extent and crs
-active.r <- rast(active[nrow(active):1, ], crs = crs,
-                 extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-res(active.r) # 5000 5000 with skip = 1 but 5000.000 5003.909 with skip = 2 in read.csv above
+active.r <- rast("../covariates_spatial/activeAfrica.tif")
+a.crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84"
+same.crs(crs(active.r), a.crs) # TRUE
+a.crs <- crs(active.r)
+
+res(active.r) # 5000 5000
 
 # read in elevation
 elev.r <- rast("../covariates_spatial/elev.tif")
@@ -114,11 +104,11 @@ d2c <- as.matrix(d2c)
 d2r <- as.matrix(d2r)
 pop <- as.matrix(pop)
 
-d2c.r <- rast(d2c[nrow(d2c):1, ], crs = crs,
+d2c.r <- rast(d2c[nrow(d2c):1, ], crs = a.crs,
               extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-d2r.r <- rast(d2r[nrow(d2r):1, ], crs = crs,
+d2r.r <- rast(d2r[nrow(d2r):1, ], crs = a.crs,
               extent =  c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-pop.r <- rast(pop[nrow(pop):1, ], crs = crs,
+pop.r <- rast(pop[nrow(pop):1, ], crs = a.crs,
               extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
 
 res(d2c.r); res(d2r.r); res(pop.r); res(elev.r)
@@ -129,7 +119,7 @@ res(d2c.r); res(d2r.r); res(pop.r); res(elev.r)
 # (could also use cell id but sticking with geographic overlay)
 coords <- cbind(abund$lon.centroid, abund$lat.centroid)
 v <- vect(coords, crs = "epsg:4326")
-proj.coords <- project(v, crs)
+proj.coords <- project(v, a.crs)
 
 plot(active.r)
 plot(proj.coords, add = TRUE)
@@ -146,5 +136,80 @@ abund$elev <- o.elev[ , 2]
 
 # bind spatial and temporal covariates -----------------------------------------
 
+## met data covariates ---------------------------------------------------------
+
 abundance <- cbind(abund, pabund[ , c(names(lag.p), names(lag.t), names(lag.r))])
+
+## vector intervention ---------------------------------------------------------
+
+# years with observations
+Y <- sort(unique(lubridate::year(as.Date(abundance$date))))
+Y.pre2001 <- Y[Y < 2001]
+Y <- Y[Y >= 2001]
+
+abundance$year <- lubridate::year(as.Date(abundance$date))
+
+## IRS -------------------------------------------------------------------------
+
+abundance$IRS <- NA
+for (y in Y) {
+  irs <- rast(paste0("../vector_intervention/IRS_", y, ".tif"))
+  same.crs(active.r, irs) # TRUE
+  o.irs.y <- extract(irs, proj.coords)
+  abundance$IRS[abundance$year == y] <- o.irs.y[abundance$year == y, 2]
+}
+
+### IRS missing for early years-------------------------------------------------
+
+# this is city of Mbandjock with ITN intervention: Antonio-Nkondjio et al. (2013)
+# described in DOI:10.1186/1756-3305-6-10 as having
+# no IRS treatment since 1960s
+unique(abundance[is.na(abundance$IRS), "cell"]) # 684641
+unique(abundance[is.na(abundance$IRS), "year"]) # 1997 1998
+
+abundance$IRS[is.na(abundance$IRS)] <- 0
+
+## ITN -------------------------------------------------------------------------
+
+abundance$ITN <- NA
+for (y in Y) {
+  itn <- rast(paste0("../vector_intervention/ITN_", y, ".tif"))
+  same.crs(active.r, itn) # TRUE
+  o.itn.y <- extract(itn, proj.coords)
+  abundance$ITN[abundance$year == y] <- o.itn.y[abundance$year == y, 2]
+}
+
+### ITN missing for early years ------------------------------------------------
+
+# this is city of Mbandjock with ITN intervention: Antonio-Nkondjio et al. (2013)
+# described in DOI:10.1186/1756-3305-6-10
+# "January to June 1997 represented the period before bed net coverage and September 1997 to
+# September 1998 was the period after bed net coverage"
+# Table 1:
+# 3400 total beds in Mbandjock
+# 31 pre-existing nets
+# 2454 nets distributed
+unique(abundance[is.na(abundance$ITN), "cell"]) # 684641
+unique(abundance[is.na(abundance$ITN), "year"]) # 1997 1998
+
+unique(abundance[abundance$cell == 684641 & abundance$date < "1997-07-01", "date"])
+unique(abundance[abundance$cell == 684641 & abundance$date >= "1997-07-01", "date"])
+
+abundance[abundance$cell == 684641 & abundance$date < "1997-07-01", "ITN"] <- 31/3400
+abundance[abundance$cell == 684641 & abundance$date >= "1997-07-01", "ITN"] <- 2454/3400
+
+# vector intervention summary stats --------------------------------------------
+
+# Malaria Atlas Project:
+# "Proportion of households covered with Indoor Residual Spraying during a defined year 2000-2022"
+tIRS <- c(tapply(abundance$IRS, list(abundance$cell), "max", na.rm = TRUE))
+sum(tIRS > 0.1)/length(tIRS)
+
+# Malaria Atlas Project:
+# "Proportion of population that sleeps under an Insecticide-Treated Net during a defined year 2000-2022"
+tITN <- c(tapply(abundance$ITN, list(abundance$cell), "max", na.rm = TRUE))
+sum(tITN > 0.1)/length(tITN)
+
+# save abundance file ----------------------------------------------------------
+
 saveRDS(abundance, file = "abund_obs_covs.rds")

@@ -17,6 +17,13 @@
 #   - precip for abundance
 #   - prediction function pxPrediction
 
+# for array job set id <- NULL
+id <- NULL
+if (is.null(id)) {
+  args <- commandArgs(trailingOnly=T)
+  id <- as.numeric(args[1])
+}
+
 # Read in multinomial fit, abundance parameters and spatial covariates ---------
 
 # prediction function
@@ -41,18 +48,18 @@ obs.names <- c("light", "exit", "PSC", "animal",  "pit",  "outdoor")
 
 crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
 
-# check active cells for correct extent info
-all(read.csv("../covariates_spatial/active.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-# read in spatial scope of RA in projected CRS
-active <- read.csv("../covariates_spatial/active.csv", skip = 1, header = FALSE)
-all.equal(dim(active), c(1280, 1520)) # expecting same number of rows and columns for all covariate data
-active <- as.matrix(active)
 library(terra)
-# extent and crs
-active.r <- rast(active[nrow(active):1, ], crs = crs,
-                 extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-res(active.r) # 5000 5000 with skip = 1 but 5000.000 5003.909 with skip = 2 in read.csv above
+
+#  vector intervention covariates (spatio-temporal): ITNs ----------------------
+
+YITN <- 2002:2020
+ITN.files <- paste0("../vector_intervention/ITN_", YITN, ".tif")
+itn.r <- rast(ITN.files)
+names(itn.r) <- paste0("Y", YITN)
+
+active.r <- rast("../covariates_spatial/activeAfrica.tif")
+same.crs(crs(active.r), crs) # TRUE
+res(active.r)
 
 ## read in elevation
 
@@ -166,6 +173,11 @@ iter <- 1
 N <- nrow(ap.crds)
 pt <- proc.time()["elapsed"]
 
+start.id <- ((id - 1)*1000 + 1)
+end.id <- min(id*1000, length(u.cells))
+
+u.cells <- u.cells[start.id:end.id]
+
 # for each MERRA-2 cell
 for (u in u.cells) {
 
@@ -243,13 +255,21 @@ for (u in u.cells) {
     if (abs(scovs["lat.centroid"] - met[1, "LAT"]) > 0.5)
       stop("latitude for active cell unexpectedly far from MERRA-2 gridpoint")
 
-    if (!any(is.na(scovs))) {
+    if (!any(is.na(scovs)) && !is.na(as.numeric(itn.r[[1]][a]))) {
 
       scovs["lat.centroid"] <- abs(scovs["lat.centroid"])
       scovs.mat <- matrix(scovs, byrow = TRUE, nrow = nrow(ra.1m), ncol = length(scovs),
                           dimnames = list(
                             rownames(ra.1m), names(scovs)
                           ))
+
+      # ITN data by year
+      itn.df <- data.frame(YITN = YITN, ITN = as.numeric(itn.r[a]))
+      ITN <- rep(NA, nrow(scovs.mat))
+      scovs.mat <- cbind(scovs.mat, ITN)
+      for (k in 1:length(years)) {
+        scovs.mat[years == YITN[k], "ITN"] <- itn.df[k, "ITN"]
+      }
 
       # relative abundance prediction data
       ra.dat <- as.data.frame(cbind(
@@ -266,10 +286,11 @@ for (u in u.cells) {
       ra.df <- as.data.frame(ra.dat)
 
       # abundance spatial prediction data
-      a.mat <- scovs.mat[ , c("d2c", "d2r", "pop", "elev", "lat.centroid", "lon.centroid")]
-      # relabel lat/long
+      a.mat <- scovs.mat[ , c("d2c", "d2r", "pop", "elev", "lat.centroid", "lon.centroid", "ITN")]
+      # relabel lat/long, itn
       colnames(a.mat)[which(colnames(a.mat) == "lat.centroid")] <- "lat"
       colnames(a.mat)[which(colnames(a.mat) == "lon.centroid")] <- "long"
+      colnames(a.mat)[which(colnames(a.mat) == "ITN")] <- "itn"
       # abs value of lat
       a.mat[ , "lat"] <- abs(a.mat[ , "lat"])
       # precip for abundance
@@ -292,9 +313,6 @@ for (u in u.cells) {
 
       # actual abundance
       x <- preds.ls$x
-
-      # relative abundances (actual)
-      p <- x/rowSums(x)
 
       # assign results
       results[which(results[ , "cell"] == a), 5:40] <- c(
@@ -349,14 +367,10 @@ for (u in u.cells) {
       cat("iteration ", iter, " of ", N, ". Elapsed time: ",
           proc.time()["elapsed"] - pt, "\n", sep = "")
 
-    if (iter%%10000 == 0)
-      saveRDS(results, "results.rds")
-
     iter <- iter + 1
 
   }
 }
 
-saveRDS(results, "results.rds")
-
+saveRDS(results, paste0("results_", id, ".rds"))
 

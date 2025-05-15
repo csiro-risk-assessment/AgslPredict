@@ -26,21 +26,12 @@ colnames(dat) <- gsub("\\)", ".", col.names)
 
 # subset abundance data to bounding box ----------------------------------------
 
-# read in spatial scope of RA in projected CRS
-active <- read.csv("../covariates_spatial/active.csv", skip = 1, header = FALSE) # or skip = 2?
-#active <- read.csv("inst/covariates_spatial/active.csv", skip = 1, header = FALSE)
-all.equal(dim(active), c(1280, 1520)) # expecting same number of rows and columns for all covariate data
-active <- as.matrix(active)
-
+# read in spatial scope of RA 
 library(terra)
-# Lambert azimuthal equal area
-# see Steinwand et al. (1995)
-crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
-active.r <- rast(active[nrow(active):1, ], crs = crs,
-                 extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-res(active.r) # 5000 5000 with skip = 1 but 5000.000 5003.909 with skip = 2 in read.csv above
-
-plot(active.r, ext = c(-160000 - 20000*2, -140000 + 20000*2, -69000 - 40000*2, -68000 + 2*40000))
+active.r <- rast("../covariates_spatial/activeAfrica.tif")
+a.crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" 
+same.crs(crs(active.r), a.crs) # TRUE
+a.crs <- crs(active.r)
 
 project(ext(active.r), crs(active.r), "epsg:4326")
 
@@ -133,7 +124,7 @@ plot(a.dat$Longitudes[a.dat$Agsl > 0], a.dat$Latitudes[a.dat$Agsl > 0],
 # project coords from abundance data and find corresponding cells
 coords <- cbind(a.dat$Longitudes, a.dat$Latitudes)
 v <- vect(coords, crs = "epsg:4326")
-proj.coords <- project(v, crs)
+proj.coords <- project(v, a.crs)
 
 plot(active.r)
 plot(proj.coords, add = TRUE, col = 'red')
@@ -150,7 +141,7 @@ o.cells <- cells(active.r, proj.coords)
 r.crds <- crds(active.r)
 or.crds <- r.crds[o.cells[ , "cell"], ]
 # project to lat/long
-or.crds <- vect(or.crds, crs = crs)
+or.crds <- vect(or.crds, crs = a.crs)
 por.crds <- project(or.crds, "epsg:4326")
 o.cells <- cbind(o.cells, crds(por.crds))
 
@@ -160,6 +151,40 @@ a.dat$lat.centroid <- o.cells[ , "y"]
 
 plot(a.dat$Longitudes, a.dat$Latitudes)
 points(a.dat$lon.centroid, a.dat$lat.centroid, pch = 3, col = 'red')
+
+# there is a single study pre-2001
+unique(a.dat[lubridate::year(lubridate::date(a.dat$Collection.date.range)) < 2001, "cell"])
+# VBA2882243
+# DOI:10.1186/1471-2334-12-275,DOI:10.1186/1756-3305-6-10
+# cell: 684641
+points(a.dat$lon.centroid[a.dat$cell == 684641], 
+       a.dat$lat.centroid[a.dat$cell == 684641], 
+       pch = 19, col = 'blue')
+
+# this is city of Mbandjock with ITN intervention: Antonio-Nkondjio et al. (2013)
+unique(a.dat[lubridate::year(lubridate::date(a.dat$Collection.date.range)) < 2001, c("Longitudes", "Latitudes")])
+4 + 27/60 # lat Mbandjock, Cameroon
+11 + 54/60 # long Mbandjock, Cameroon
+
+# collection methods for analysis ----------------------------------------------
+
+# collection method management
+# exclude larvae collections - targeting adult females
+a.dat <- a.dat[a.dat$Collection.protocols != "collection of larvae from dippers", ]
+
+# drop all records with collection methods having less than 10 occurrences
+rareMethods <- names(table(a.dat$Collection.protocols))[table(a.dat$Collection.protocols) <= 10]
+
+# collection method management
+# exclude larvae collections - targeting adult females
+dat <- dat[dat$Collection.protocols != "collection of larvae from dippers", ]
+# drop all records with collection methods having less than 10 occurrences
+# defined as date by cell by protocol combinations
+rareMethods <- c(
+  "animal biting catch - indoors", "catch of live specimens",
+  "house resting - daytime catch", "swarm net catch"
+)
+a.dat <- a.dat[!a.dat$Collection.protocols%in%rareMethods, ]
 
 # abundance data source map ----------------------------------------------------
 library(sf)
@@ -226,6 +251,8 @@ for (i in 1:length(samps)) {
 ## Create a table of the citations for the abundance data ----------------------
 Abund.cit <- unique(abundance[, c("Projects", "Citations")])
 
+all.equal(sort(unique(a.dat[, "Projects"])), unique(sort(Abund.cit[ , "Projects"])))
+
 ## Export as a table
 library(xtable)
 print(
@@ -249,152 +276,9 @@ saveRDS(abundance, file = "abundance.rds")
 # visualise spatial
 coords <- cbind(abundance$lon.centroid, abundance$lat.centroid)
 v <- vect(coords, crs = "epsg:4326")
-proj.coords <- project(v, crs)
+proj.coords <- project(v, a.crs)
 
 plot(active.r)
 plot(proj.coords, add = TRUE, col = "darkorange")
 
 
-
-# # abundance aggregated to grid cells
-# abund <- readRDS("abundance.rds")
-
-# # weekly running means of precip -----------------------------------------------
-# # lagged from one day to duration of immature life history stage
-# # for each observation
-#
-# # lat/long for each cell
-# precip.cells <- unique(abund$cell)
-# precip.lon <- precip.lat <- numeric(length(precip.cells))
-# for (i in 1:length(precip.cells)) {
-#   precip.lon[i] <- unique(abund[abund$cell == precip.cells[i], "lon.centroid"])
-#   precip.lat[i] <- unique(abund[abund$cell == precip.cells[i], "lat.centroid"])
-# }
-# precip.locations <- as.data.frame(cbind(precip.cells, precip.lon, precip.lat))
-#
-# imm.duration <- 10 # duration of immature phase
-# p.duration <- 7 # duration of precip running mean
-#
-# # running weekly averages
-# # for lag of one day to lag of imm.duration days wrt every observation
-# lag.p <- lag.t <- lag.r <- as.data.frame(matrix(NA, nrow = nrow(abund), ncol = imm.duration,
-#                                                 dimnames = list(NULL, paste0("lag", 1:imm.duration))
-# ))
-# names(lag.p) <- paste0("p_", names(lag.p))
-# names(lag.t) <- paste0("t_", names(lag.t))
-# names(lag.r) <- paste0("r_", names(lag.r))
-#
-# pabund <- cbind(abund, lag.p, lag.t, lag.r)
-#
-# ## precipitations
-# for (i in 1:nrow(precip.locations)) {
-#
-#   rec <- read.csv(paste0("../meteo_for_abundance/precip_", precip.cells[i], ".csv"),
-#                   header = TRUE)
-#
-#   # subset dataframe to correspond with cell
-#   sub.cell <- pabund[pabund$cell == precip.cells[i], ]
-#
-#   # lagged weekly averages of precip
-#   for (j in 1:nrow(sub.cell)) {
-#     id <- which(rec$YYYYMMDD == sub.cell$date[j])
-#     # lags from one day to imm.duration days
-#     for (k in 1:imm.duration) {
-#       # p.duration running means over lags of one day to imm.duration days
-#       sub.cell[j, colnames(lag.p)[k]] <- mean(rec[(id - k - p.duration + 1):(id - k), "PRECTOTCORR"])
-#       sub.cell[j, colnames(lag.t)[k]] <- mean(rec[(id - k - p.duration + 1):(id - k), "T2M"])
-#       sub.cell[j, colnames(lag.r)[k]] <- mean(rec[(id - k - p.duration + 1):(id - k), "RH2M"])
-#     }
-#   }
-#
-#   pabund[pabund$cell == precip.cells[i], ] <- sub.cell
-#
-# }
-#
-# all.equal(abund, pabund[ , names(abund)])
-#
-# # spatial covariates -----------------------------------------------------------
-#
-# # following uses same code as "relativeAbundancePrep.R"
-# # switching data.frame ra for abund
-#
-# # Lambert azimuthal equal area
-# # see Steinwand et al. (1995)
-#
-# crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
-#
-# # use  limits denoted in first line of csv files
-# # should read: #xmin=-4099134.0	ymin=-4202349.0	cell_size=5000.0	nx=1520	ny=1280
-#
-# # check active cells for correct extent info
-# all(read.csv("../covariates_spatial/active.csv", header = FALSE, nrow = 1) ==
-#       c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-# # read in spatial scope of RA in projected CRS
-# active <- read.csv("../covariates_spatial/active.csv", skip = 1, header = FALSE)
-# all.equal(dim(active), c(1280, 1520)) # expecting same number of rows and columns for all covariate data
-# active <- as.matrix(active)
-# library(terra)
-# # extent and crs
-# active.r <- rast(active[nrow(active):1, ], crs = crs,
-#                  extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-# res(active.r) # 5000 5000 with skip = 1 but 5000.000 5003.909 with skip = 2 in read.csv above
-#
-# # read in elevation
-# elev.r <- rast("../covariates_spatial/elev.tif")
-#
-# # read in covariates with existing .csv files (10 August 2023)
-#
-# # check for correct extent info
-# all(read.csv("../covariates_spatial/d2c.csv", header = FALSE, nrow = 1) ==
-#       c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-# all(read.csv("../covariates_spatial/d2r.csv", header = FALSE, nrow = 1) ==
-#       c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-# all(read.csv("../covariates_spatial/pop.csv", header = FALSE, nrow = 1) ==
-#       c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-#
-# d2c <- read.csv("../covariates_spatial/d2c.csv", skip = 1, header = FALSE)
-# d2r <- read.csv("../covariates_spatial/d2r.csv", skip = 1, header = FALSE)
-# pop <- read.csv("../covariates_spatial/pop.csv", skip = 1, header = FALSE)
-#
-# all.equal(dim(d2c), c(1280, 1520))
-# all.equal(dim(d2r), c(1280, 1520))
-# all.equal(dim(pop), c(1280, 1520))
-#
-# d2c <- as.matrix(d2c)
-# d2r <- as.matrix(d2r)
-# pop <- as.matrix(pop)
-#
-# d2c.r <- rast(d2c[nrow(d2c):1, ], crs = crs,
-#               extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-# d2r.r <- rast(d2r[nrow(d2r):1, ], crs = crs,
-#               extent =  c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-# pop.r <- rast(pop[nrow(pop):1, ], crs = crs,
-#               extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-#
-# res(d2c.r); res(d2r.r); res(pop.r); res(elev.r)
-#
-# # assign covariate values to abundance data ------------------------------------
-#
-# # project coords from abundance data and find corresponding cells
-# # (could also use cell id but sticking with geographic overlay)
-# coords <- cbind(abund$lon.centroid, abund$lat.centroid)
-# v <- vect(coords, crs = "epsg:4326")
-# proj.coords <- project(v, crs)
-#
-# plot(active.r)
-# plot(proj.coords, add = TRUE)
-#
-# o.d2c <- extract(d2c.r, proj.coords)
-# o.d2r <- extract(d2r.r, proj.coords)
-# o.pop <- extract(pop.r, proj.coords) # no missing values
-# o.elev <- extract(elev.r, proj.coords) # no missing values
-#
-# abund$d2c <- o.d2c[ , 2]
-# abund$d2r <- o.d2r[ , 2]
-# abund$pop <- o.pop[ , 2]
-# abund$elev <- o.elev[ , 2]
-#
-# # bind spatial and temporal covariates -----------------------------------------
-#
-# abundance <- cbind(abund, pabund[ , c(names(lag.p), names(lag.t), names(lag.r))])
-# saveRDS(abundance, file = "abund_obs_covs.rds")

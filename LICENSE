@@ -1,4 +1,4 @@
-Year: 2024
+Year: 2025
 Copyright: CSIRO
 Data licenses:
 
@@ -81,6 +81,18 @@ Citation:
 Malaria Atlas Project, 2021. URL https://malariaatlas.org/. Accessed 17 December
 2021.
 
+# Vector invention maps --------------------------------------------------------
+
+The map data for insecticide treated nets and indoor residual spraying is
+available at the Malaria Atlas Project. The license uses the Creative Commons
+Attribution 3.0 Unported License available at
+<https://creativecommons.org/licenses/by/3.0/>.
+
+Citation:
+
+Malaria Atlas Project, 2021. URL https://malariaatlas.org/. Accessed 31 March
+2025.
+
 # VectorBase.org relative abundance and abundance data -------------------------
 
 These datasets collated by <VectorBase.org> are licensed under a Creative
@@ -94,9 +106,9 @@ Giraldo-Calderón, GI, Harb, OS, Kelly, SA, Rund, SS, Roos, DS, McDowell, MA.
 of human pathogens and related organisms. Current Opinion in Insect Science
 50:100860.
 
-VectorBase.org. 2023. Popbio Map Legacy. Release 64.Accessed: 22 April 2024.
+VectorBase.org. 2023. Popbio Map Legacy. Release 64. Accessed: 1 April 2025.
 <https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz>
 
 VectorBase.org. 2023. Popbio Map Legacy Abundance with Zeroes. Release 64.
-Accessed 7 June 2024.
+Accessed: 2 April 2025.
 <https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Abundance-with-zeroes.csv.gz>

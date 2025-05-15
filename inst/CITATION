@@ -1,2 +1,21 @@
 ## R package reference generated from DESCRIPTION metadata
 citation(auto = meta)
+
+# article
+bibentry(
+  bibtype = "article",
+  author  = c(person(c("Geoffrey", "R."), "Hosack"),
+  person("Maud", "El-Hachem"),
+  person("Adrien", "Ickowicz"),
+  person(c("Nicholas", "J."), "Beeton"),
+  person("Andrew", "Wilkins"),
+  person(c("Keith", "R."), "Hayes"),
+  person(c("Samuel", "S.", "C."), "Rund"),
+  person(c("Sarah", "A."), "Kelly"),
+  person(c("Mary", "Ann"), "MacDowell")),
+  journal =  "bioRxiv",
+  title   = "Prediction of mosquito vector abundance for three species in the
+  Anopheles gambiae complex",
+  year    = "2025",
+  url     = "https://doi.org/10.1101/2025.03.04.641552"
+)

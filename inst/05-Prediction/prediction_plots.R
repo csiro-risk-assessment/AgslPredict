@@ -1,66 +1,44 @@
 # prediction plots
-# using results from prediction_tot_relabund.R
+# using results from prediction_tot_relabund_array.R
 # and tempMask.R
 
 # read in predictions ----------------------------------------------------------
 
-results <- readRDS("results.rds")
+# source array of results and conatenate into single results file
+res.files <- grep("results_", dir(), value = TRUE)
+results <- readRDS(res.files[1])
+results[ , 5:ncol(results)] <- NA
+for (i in 1:length(res.files)) {
+  res <- readRDS(res.files[i])
+  res.ids <- which(!is.na(res[ , 6]))
+  if (any(!is.na(results[res.ids, 5:ncol(results)])))
+    stop("indexing error")
+  if (!all(results[res.ids, 1:4] == res[res.ids, 1:4]))
+    stop("results structure error")
+  results[res.ids, 5:ncol(res)] <- res[res.ids, 5:ncol(res)] 
+}
 
-# spatial covariates -----------------------------------------------------------
-
-# spatial covariates
-# Lambert azimuthal equal area
-# see Steinwand et al. (1995)
-
+# human population -------------------------------------------------------------
 crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
 
-# check active cells for correct extent info
-all(read.csv("../covariates_spatial/active.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-# read in spatial scope of RA in projected CRS
-active <- read.csv("../covariates_spatial/active.csv", skip = 1, header = FALSE)
-all.equal(dim(active), c(1280, 1520)) # expecting same number of rows and columns for all covariate data
-active <- as.matrix(active)
 library(terra)
-# extent and crs
-active.r <- rast(active[nrow(active):1, ], crs = crs,
-                 extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-res(active.r) # 5000 5000 with skip = 1 but 5000.000 5003.909 with skip = 2 in read.csv above
 
-## read in elevation
-
-elev.r <- rast("../covariates_spatial/elev.tif")
+active.r <- rast("../covariates_spatial/activeAfrica.tif")
+same.crs(crs(active.r), crs) # TRUE
+res(active.r) 
 
 ## read in remaining spatial covariate .csv files
 
 # check for correct extent info
-all(read.csv("../covariates_spatial/d2c.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/d2r.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
 all(read.csv("../covariates_spatial/pop.csv", header = FALSE, nrow = 1) ==
       c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-
-d2c <- read.csv("../covariates_spatial/d2c.csv", skip = 1, header = FALSE)
-d2r <- read.csv("../covariates_spatial/d2r.csv", skip = 1, header = FALSE)
 pop <- read.csv("../covariates_spatial/pop.csv", skip = 1, header = FALSE)
-
-all.equal(dim(d2c), c(1280, 1520))
-all.equal(dim(d2r), c(1280, 1520))
 all.equal(dim(pop), c(1280, 1520))
-
-d2c <- as.matrix(d2c)
-d2r <- as.matrix(d2r)
 pop <- as.matrix(pop)
-
-d2c.r <- rast(d2c[nrow(d2c):1, ], crs = crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-d2r.r <- rast(d2r[nrow(d2r):1, ], crs = crs,
-              extent =  c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
 pop.r <- rast(pop[nrow(pop):1, ], crs = crs,
               extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
 
-res(d2c.r); res(d2r.r); res(pop.r); res(elev.r)
+res(pop.r)
 
 # temperature mask -------------------------------------------------------------
 
@@ -92,10 +70,51 @@ formatC(sum(results.nu[ , "Aa_mean"], na.rm = TRUE))
 formatC(sum(results.nu[ , "Ac_mean"], na.rm = TRUE))
 formatC(sum(results.nu[ , "Ag_mean"], na.rm = TRUE))
 
-# Ag + Ac total estimate: times two for adult males also
-formatC(sum(rowSums(results.nu[ , c("Ac_mean", "Ag_mean")]*2, na.rm = TRUE)))
-# rough ratio of effective population size to total Ac + Ag (female + male)
-formatC(sum(rowSums(results.nu[ , c("Ac_mean", "Ag_mean")]*2*0.10, na.rm = TRUE)))
+# adult population size estimates: both sexes
+# Aa, Ac, Ag by year and overall average
+# Ac + Ag effective population size
+pop.tab <- matrix(NA, nrow = 5, ncol = 1,
+                  dimnames = list(Years = c("2002", "2008", "2014", "2020", "Mean"),
+                                  Population = c("Effective")))
+# Ac + Ag
+# adjust for rough ratio of effective population size to total Ac + Ag (female + male)
+pop.tab["2002", c("Effective")] <-
+  formatC(sum(rowSums(results.nu[ , c("Ac_y2002", "Ag_y2002")]*2*0.10, na.rm = TRUE)), digits = 3)
+pop.tab["2008", c("Effective")] <-
+  formatC(sum(rowSums(results.nu[ , c("Ac_y2008", "Ag_y2008")]*2*0.10, na.rm = TRUE)), digits = 3)
+pop.tab["2014", c("Effective")] <-
+  formatC(sum(rowSums(results.nu[ , c("Ac_y2014", "Ag_y2014")]*2*0.10, na.rm = TRUE)), digits = 3)
+pop.tab["2020", c("Effective")] <-
+  formatC(sum(rowSums(results.nu[ , c("Ac_y2020", "Ag_y2020")]*2*0.10, na.rm = TRUE)), digits = 3)
+pop.tab["Mean", c("Effective")] <-
+  formatC(sum(rowSums(results.nu[ , c("Ac_mean", "Ag_mean")]*2*0.10, na.rm = TRUE)), digits = 3)
+
+library(xtable)
+
+s <- sanitize.numbers(pop.tab, type = "latex", math.style.exponents = TRUE)
+
+# EIR
+hpop <- extract(pop.r, results[ , c('x', 'y')])
+
+# approx species feeding rates from daily feeding probabilities
+rate <- matrix(-log((1 - c(0.37, 0.49, 0.47))), nrow = nrow(results.nu), ncol = 3, byrow = TRUE)
+
+# sporozoite rates for An. gambiae s.l. from Table 3 in Msugupakulya et al. (2023)
+bv2002 <- rowSums(results.nu[ , c("Aa_y2002", "Ac_y2002", "Ag_y2002")]*rate, na.rm = TRUE)*0.015 
+bv2020 <- rowSums(results.nu[ , c("Aa_y2020", "Ac_y2020", "Ag_y2020")]*rate, na.rm = TRUE)*0.010
+# divide by human population
+bv2002 <- bv2002/(hpop$lyr.1*25)
+bv2020 <- bv2020/(hpop$lyr.1*25)
+# annualise 
+bv2002 <- bv2002*365
+bv2020 <- bv2020*365
+# # # filter to at least 50 inhabitants per sq km
+# bv2002 <- bv2002[hp]
+# bv2020 <- bv2020[hp]
+
+qs <- c(0.1, 0.5, 0.9)
+quantile(bv2002[results.nu[ , "lon"] >= 30], qs, na.rm = TRUE)
+quantile(bv2020[results.nu[ , "lon"] >= 30], qs, na.rm = TRUE)
 
 saveRDS(results.nu, file = "resultsNU.rds")
 
@@ -190,9 +209,10 @@ ann.theme <- rasterTheme(
   layout.heights=list(top.padding = -2,
                       bottom.padding = -2)
 )
-png("annual_avg.png", 2.5*480, 2.5*480*(1/3))
+png("annual_avg.png", 2.5*480*3, 2.5*480*(1/3)*3, res = 3*72)
 par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(res.r[[c("Aa_mean", "Ac_mean", "Ag_mean")]],
+          maxpixels = 2.3e6,
           main = "Annual average abundance",
           names.attr = c(
             expression(italic("An. arabiensis")),
@@ -222,8 +242,9 @@ quart.theme <- rasterTheme(
     text = 18, points = 8
   )
 )
-png("Q_Aa.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
+png("Q_Aa.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Aa_Q1", "Aa_Q2", "Aa_Q3", "Aa_Q4")]],
+          maxpixel = 2.3e6,
           main = expression(paste("Quarterly average abundance: ",
                                   italic("An. arabiensis"))),
           names.attr = paste0("Q", 1:4),
@@ -239,8 +260,9 @@ levelplot(res.r[[c("Aa_Q1", "Aa_Q2", "Aa_Q3", "Aa_Q4")]],
           )
 ) + layer(llines(shore, col = "black"))
 dev.off()
-png("Q_Ac.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
+png("Q_Ac.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Ac_Q1", "Ac_Q2", "Ac_Q3", "Ac_Q4")]],
+          maxpixel = 2.3e6,
           main = expression(paste("Quarterly average abundance: ",
                                   italic("An. coluzzii"))),
           names.attr = paste0("Q", 1:4),
@@ -256,8 +278,9 @@ levelplot(res.r[[c("Ac_Q1", "Ac_Q2", "Ac_Q3", "Ac_Q4")]],
           )
 ) + layer(llines(shore, col = "black"))
 dev.off()
-png("Q_Ag.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
+png("Q_Ag.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Ag_Q1", "Ag_Q2", "Ag_Q3", "Ag_Q4")]],
+          maxpixel = 2.3e6,
           main = expression(paste("Quarterly average abundance: ",
                                   italic("An. gambiae"), " s.s.")),
           names.attr = paste0("Q", 1:4),
@@ -294,8 +317,9 @@ anom.theme <- rasterTheme(
     text = 18, points = 8
   )
 )
-png("Anom_Aa.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
+png("Anom_Aa.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Aa_anom2002", "Aa_anom2008", "Aa_anom2014", "Aa_anom2020")]],
+          maxpixel = 2.3e6,
           main = expression(paste("Anomaly relative to 2002-2020 average: ",
                                   italic("An. arabiensis"))),
           names.attr = c("2002", "2008", "2014", "2020"),
@@ -311,8 +335,9 @@ levelplot(res.r[[c("Aa_anom2002", "Aa_anom2008", "Aa_anom2014", "Aa_anom2020")]]
           )
 ) + layer(llines(shore, col = "black"))
 dev.off()
-png("Anom_Ac.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
+png("Anom_Ac.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Ac_anom2002", "Ac_anom2008", "Ac_anom2014", "Ac_anom2020")]],
+          maxpixel = 2.3e6,
           main = expression(paste("Anomaly relative to 2002-2020 average: ",
                                   italic("An. coluzzii"))),
           names.attr = c("2002", "2008", "2014", "2020"),
@@ -328,8 +353,9 @@ levelplot(res.r[[c("Ac_anom2002", "Ac_anom2008", "Ac_anom2014", "Ac_anom2020")]]
           )
 ) + layer(llines(shore, col = "black"))
 dev.off()
-png("Anom_Ag.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
+png("Anom_Ag.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Ag_anom2002", "Ag_anom2008", "Ag_anom2014", "Ag_anom2020")]],
+          maxpixel = 2.3e6,
           main = expression(paste("Anomaly relative to 2002-2020 average: ",
                                   italic("An. gambiae"), " s.s.")),
           names.attr = c("2002", "2008", "2014", "2020"),
@@ -358,9 +384,10 @@ ann.theme <- rasterTheme(
   layout.heights=list(top.padding = -2,
                       bottom.padding = -2)
 )
-png("rel_abundance.png", 2.5*480, 2.5*480*(1/3))
+png("rel_abundance.png", 2.5*480*3, 2.5*480*(1/3)*3, res = 3*72)
 par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(res.r[[c("Aa_r", "Ac_r", "Ag_r")]],
+          maxpixel = 2.3e6,
           main = "Predicted relative abundance",
           names.attr = c(
             expression(italic("An. arabiensis")),
@@ -382,9 +409,10 @@ dev.off()
 
 ## predicted variance raw rel abundance ----------------------------------------
 
-png("rel_abundance_var.png", 2*480, 2*480*(1/2))
+png("rel_abundance_var.png", 2*480*3, 2*480*(1/2)*3, res = 3*72)
 par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(res.r[[c("logAcAa_v", "logAgAa_v")]],
+          maxpixel = 2.3e6,
           main = "Average prediction variance",
           names.attr = c(
             expression(paste("log ", italic("An. coluzzii") / italic("An. arabiensis"))),
@@ -398,9 +426,10 @@ dev.off()
 
 ## raw total abundance ---------------------------------------------------------
 
-png("tot_abundance.png", sqrt(0.5)*2*480, sqrt(0.5)*2*480)
+png("tot_abundance.png", sqrt(0.5)*2*480*3, sqrt(0.5)*2*480*3, res = 3*72)
 par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(log(res.r[["tot_mean"]]),
+          maxpixel = 2.3e6,
           main = "Predicted per person average abundance",
           margin = FALSE,
           zscaleLog = FALSE,
@@ -415,9 +444,10 @@ dev.off()
 
 ## predicted variance total abundance ------------------------------------------
 
-png("tot_abundance_var.png", sqrt(0.5)*2*480, sqrt(0.5)*2*480)
+png("tot_abundance_var.png", sqrt(0.5)*2*480*3, sqrt(0.5)*2*480*3, res = 3*72)
 par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(res.r[["tot_v"]],
+          maxpixel = 2.3e6,
           main = "Predicted per person average variance of log abundance",
           margin = FALSE,
           zscaleLog = TRUE

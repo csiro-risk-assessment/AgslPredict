@@ -5,42 +5,44 @@
 \hline
  & Model 1 \\
 \hline
-(Intercept)    & $1.38^{***}$   \\
-               & $(0.11)$       \\
-light          & $-0.67^{***}$  \\
+(Intercept)    & $2.60^{***}$   \\
+               & $(0.12)$       \\
+light          & $-0.92^{***}$  \\
                & $(0.10)$       \\
-exit           & $-0.40^{**}$   \\
+exit           & $-1.39^{***}$  \\
                & $(0.12)$       \\
-PSC            & $-0.74^{***}$  \\
+PSC            & $-0.43^{**}$   \\
                & $(0.14)$       \\
-animal         & $0.66^{***}$   \\
+animal         & $0.18$         \\
                & $(0.15)$       \\
-pit            & $-1.23^{***}$  \\
-               & $(0.16)$       \\
-outdoor        & $0.22$         \\
+pit            & $-1.76^{***}$  \\
+               & $(0.15)$       \\
+outdoor        & $-0.43^{***}$  \\
                & $(0.12)$       \\
-precip         & $15.62^{***}$  \\
-               & $(0.90)$       \\
-precip$^2$     & $-12.12^{***}$ \\
-               & $(0.79)$       \\
-pop            & $-0.49^{*}$    \\
-               & $(0.21)$       \\
-precip:lat     & $-3.79^{***}$  \\
+precip         & $15.11^{***}$  \\
                & $(0.87)$       \\
-precip:elev    & $-4.52^{***}$  \\
-               & $(1.03)$       \\
-precip:temp    & $-8.00^{***}$  \\
-               & $(1.57)$       \\
+precip$^2$     & $-12.71^{***}$ \\
+               & $(0.76)$       \\
+pop            & $-0.58^{**}$   \\
+               & $(0.20)$       \\
+itn            & $-2.09^{***}$  \\
+               & $(0.09)$       \\
+precip:lat     & $-5.50^{***}$  \\
+               & $(0.86)$       \\
+precip:elev    & $-4.51^{***}$  \\
+               & $(1.00)$       \\
+precip:temp    & $-4.25^{**}$   \\
+               & $(1.54)$       \\
 \hline
-AIC            & $60670.79$     \\
-BIC            & $60770.42$     \\
-Log Likelihood & $-30321.40$    \\
-Deviance       & $9709.97$      \\
+AIC            & $59988.17$     \\
+BIC            & $60094.92$     \\
+Log Likelihood & $-29979.09$    \\
+Deviance       & $9679.10$      \\
 Num. obs.      & $9105$         \\
 \hline
 \multicolumn{2}{l}{\scriptsize{$^{***}p<0.001$; $^{**}p<0.01$; $^{*}p<0.05$}}
 \end{tabular}
-\caption{Negative binomial GLM with estimated overdipersion parameter of 0.232.}
+\caption{Negative binomial GLM with estimated overdipersion parameter of 0.252.}
 \label{table:coefficients}
 \end{center}
 \end{table}

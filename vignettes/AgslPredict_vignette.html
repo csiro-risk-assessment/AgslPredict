@@ -11,7 +11,7 @@
 
 <meta name="author" content="Geoffrey R. Hosack and Maud El-Hachem" />
 
-<meta name="date" content="2024-11-11" />
+<meta name="date" content="2025-04-08" />
 
 <title>Vignette for AgslPredict</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Vignette for AgslPredict</h1>
 <h4 class="author">Geoffrey R. Hosack and Maud El-Hachem</h4>
-<h4 class="date">2024-11-11</h4>
+<h4 class="date">2025-04-08</h4>
 
 </div>
 
@@ -365,14 +365,15 @@ display: none;
 <h1>Outline</h1>
 <p>This vignette documents the code and data provided by package
 <strong>AgslPredict</strong> as supplementary material for the paper
-``Prediction of dominant mosquito-borne disease vectors in <em>Anopheles
-gambiae</em> sensu lato’’. The underlying response data requires
-multiple downloads and some of the analyses were implemented on advanced
-computing facilities. The scripts and previously downloaded data are
-therefore stored in top level directories of this package, which are
-referenced in this vignette. The scripts refer to files in the different
-directories to build dataframes and execute analysis that may use high
-performance computing facilities.</p>
+``Prediction of mosquito vector abundance for three species in the
+Anopheles gambiae complex’’, <a href="https://doi.org/10.1101/2025.03.04.641552" class="uri">https://doi.org/10.1101/2025.03.04.641552</a>. The
+underlying response data requires multiple downloads and some of the
+analyses were implemented on advanced computing facilities. The scripts
+and previously downloaded data are therefore stored in top level
+directories of this package, which are referenced in this vignette. The
+scripts refer to files in the different directories to build dataframes
+and execute analysis that may use high performance computing
+facilities.</p>
 <ul>
 <li><a href="#relative-abundance-data">01 Relative Abundance
 Data</a></li>
@@ -389,8 +390,9 @@ sources and citations.</p>
 <div id="relative-abundance-data" class="section level1">
 <h1>01 Relative Abundance Data</h1>
 <p>The raw data used for relative abundance are available at <a href="https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz" class="uri">https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz</a>.
-The R script that downloads and processes these data for analysis is
-available in this package by executing</p>
+The R script <code>RelativeAbundanceDataPrep.R</code> that downloads and
+processes these data for analysis is available in this package by
+executing</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;01-RelativeAbundanceData/&quot;)</code></pre>
 <p>VectorBase identified species for many samples of <em>An.
 gambiae</em> sensu lato (s.l.). Samples identified by chromosomal forms
@@ -426,6 +428,10 @@ with download script located at</p>
             &quot;meteo_for_relative_abundance/meteo_download_RelativeAbundance.R&quot;)</code></pre>
 <p>Spatial covariate data are stored at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covariates_spatial&quot;)</code></pre>
+<p>Vector intervention data should be downloaded and processed by
+scripts <code>ITN_process.R</code> and <code>IRS_process.R</code> found
+at</p>
+<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;vector_intervention&quot;)</code></pre>
 <p>The covariate data for the relative abundance data analysis are
 integrated into the dataset using the script found at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;01-RelativeAbundanceData/RelativeAbundanceDataCovariates.R&quot;)</code></pre>
@@ -439,18 +445,12 @@ is located at</p>
             &quot;02-RelativeAbundanceAnalysis/relative_abundance_analysis_1m.R&quot;)</code></pre>
 <p>This script reads in the relative abundance data and covariates. A
 series of multinomial logit GLMs are then fit using a backward stepwise
-BIC procedure on two groups of models:</p>
-<ol style="list-style-type: decimal">
-<li>1 month windowed meteorological covariates without
-transformations;</li>
-<li>1 month windowed meteorological covariates, with log-one-plus
-transformation of all nonnegative covariates.</li>
-</ol>
-<p>The best fitting model was found in group 1). The best fitting model
-included all possible covariates and most interactions and squared
-terms. The directory includes spatial plots of residuals by species,
-model predictions by species assuming most recent survey year and
-observed data by species.</p>
+BIC procedure on two groups of models 1 month windowed meteorological
+covariates without transformations.</p>
+<p>The best fitting model included all possible covariates and most
+interactions and squared terms. The directory includes spatial plots of
+residuals by species, model predictions by species assuming most recent
+survey year and observed data by species.</p>
 <p>The best fitting model object is stored at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, 
             &quot;02-RelativeAbundanceAnalysis/multinomialGLMfit1m.rds&quot;)</code></pre>
@@ -489,7 +489,11 @@ the script at</p>
 <div id="spatio-temporal-predictions" class="section level2">
 <h2>Spatio-Temporal Predictions</h2>
 <p>The predictions were processed on high performance computing by the
-following scripts.</p>
+following scripts. The daily predictions across sub-Saharan Africa for
+years from 2002 to 2020 benefit from parallel processing to reduce user
+runtime. The script batches simulations by cells using the variable
+<code>id</code>, which if set to <code>NULL</code> inherits command line
+arguments available when the <code>R</code> session is invoked.</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;,
             &quot;05-Prediction/prediction_tot_relabund.R&quot;)</code></pre>
 <p>The above script sources the prediction function at</p>
@@ -517,6 +521,11 @@ script</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covar_plots/met_plots.R&quot;)</code></pre>
 <p>Plots for spatial covariates are created by the script located at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covar_plots/spatial_plots.R&quot;)</code></pre>
+<p>The vector intervention data were downloaded from <a href="https://malariaatlas.org/" class="uri">https://malariaatlas.org/</a> using scripts located at</p>
+<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;vector_intervention&quot;)</code></pre>
+<p>Plots for the vector intervention data are created by the scripts
+located at</p>
+<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covar_plots/intervention_plots.R&quot;)</code></pre>
 </div>
 </div>
 

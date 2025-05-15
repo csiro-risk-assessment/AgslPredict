@@ -1,8 +1,7 @@
 ---
 title: "Vignette for AgslPredict"
 author: "Geoffrey R. Hosack and Maud El-Hachem"
-date: "2024-11-11"
-bibliography: AgslPredict_refs.bib
+date: "2025-04-08"
 ---
 
 <!--
@@ -21,7 +20,7 @@ knitr::opts_chunk$set(
 
 # Outline
 
-This vignette documents the code and data provided by package **AgslPredict** as supplementary material for the paper ``Prediction of dominant mosquito-borne disease vectors in *Anopheles gambiae* sensu lato''. The underlying response data requires multiple downloads and some of the analyses were implemented on advanced computing facilities. The scripts and previously downloaded data are therefore stored in top level directories of this package, which are referenced in this vignette. The scripts refer to files in the different directories to build dataframes and execute analysis that may use high performance computing facilities.
+This vignette documents the code and data provided by package **AgslPredict** as supplementary material for the paper ``Prediction of mosquito vector abundance for three species in the Anopheles gambiae complex'', <https://doi.org/10.1101/2025.03.04.641552>. The underlying response data requires multiple downloads and some of the analyses were implemented on advanced computing facilities. The scripts and previously downloaded data are therefore stored in top level directories of this package, which are referenced in this vignette. The scripts refer to files in the different directories to build dataframes and execute analysis that may use high performance computing facilities.
 
 * [01 Relative Abundance Data] 
 * [02 Relative Abundance Analysis] 
@@ -33,7 +32,7 @@ Please see file LICENSE included with the **AgslPredict** package for license in
 
 # 01 Relative Abundance Data
 
-The raw data used for relative abundance are available at <https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz>. The R script that downloads and processes these data for analysis is available in this package by executing
+The raw data used for relative abundance are available at <https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz>. The R script `RelativeAbundanceDataPrep.R` that downloads and processes these data for analysis is available in this package by executing
 ```{r ra, eval = FALSE}
 system.file(package = "AgslPredict", "01-RelativeAbundanceData/")
 ```
@@ -62,12 +61,15 @@ Spatial covariate data are stored at
 system.file(package = "AgslPredict", "covariates_spatial")
 ```
 
+Vector intervention data should be downloaded and processed by scripts `ITN_process.R` and `IRS_process.R` found at
+```{r, vi, eval = FALSE}
+system.file(package = "AgslPredict", "vector_intervention")
+```
 
 The covariate data for the relative abundance data analysis are integrated into the dataset using the script found at
 ```{r rac,eval=FALSE}
 system.file(package = "AgslPredict", "01-RelativeAbundanceData/RelativeAbundanceDataCovariates.R")
 ```
-
 
 # 02 Relative Abundance Analysis
 
@@ -77,12 +79,9 @@ system.file(package = "AgslPredict",
             "02-RelativeAbundanceAnalysis/relative_abundance_analysis_1m.R")
 ```
 
-This script reads in the relative abundance data and covariates. A series of multinomial logit GLMs are then fit using a backward stepwise BIC procedure on two groups of models:
+This script reads in the relative abundance data and covariates. A series of multinomial logit GLMs are then fit using a backward stepwise BIC procedure on two groups of models 1 month windowed meteorological covariates without transformations.
 
-1. 1 month windowed meteorological covariates without transformations;
-2. 1 month windowed meteorological covariates, with log-one-plus transformation of all nonnegative covariates.
-
-The best fitting model was found in group 1). The best fitting model included all possible covariates and most interactions and squared terms. The directory includes spatial plots of residuals by species, model predictions by species assuming most recent survey year and observed data by species. 
+The best fitting model included all possible covariates and most interactions and squared terms. The directory includes spatial plots of residuals by species, model predictions by species assuming most recent survey year and observed data by species. 
 
 The best fitting model object is stored at
 ```{r rab, eval = FALSE}
@@ -133,7 +132,7 @@ system.file(package = "AgslPredict",
 
 ## Spatio-Temporal Predictions
 
-The predictions were processed on high performance computing by the following scripts.
+The predictions were processed on high performance computing by the following scripts. The daily predictions across sub-Saharan Africa for years from 2002 to 2020 benefit from parallel processing to reduce user runtime. The script batches simulations by cells using the variable `id`, which if set to `NULL` inherits command line arguments available when the `R` session is invoked.
 
 ```{r pred1, eval = FALSE}
 system.file(package = "AgslPredict",
@@ -182,4 +181,12 @@ Plots for spatial covariates are created by the script located at
 system.file(package = "AgslPredict", "covar_plots/spatial_plots.R")
 ```
 
+The vector intervention data were downloaded from <https://malariaatlas.org/> using scripts located at
+```{r vecdat, eval=FALSE}
+system.file(package = "AgslPredict", "vector_intervention")
+```
 
+Plots for the vector intervention data are created by the scripts located at
+```{r vecplots, eval= FALSE}
+system.file(package = "AgslPredict", "covar_plots/intervention_plots.R")
+```

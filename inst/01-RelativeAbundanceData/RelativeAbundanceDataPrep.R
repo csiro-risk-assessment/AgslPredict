@@ -117,8 +117,8 @@ dat$origin.year <- year(dat$date1)
 # remove all dates with samples initiated before 2001
 dat <- dat[dat$origin.year >= 2001, ]
 
-# include samples with diffDate not greater than ~3 months or 93 days (allowing for overnight collections)
-dat <- dat[dat$diffDate <= 93, ]
+# include samples with diffDate not greater than 1 month or 31 days (allowing for overnight collections)
+dat <- dat[dat$diffDate <= 31, ]
 
 # species frequencies ----------------------------------------------------------
 
@@ -165,28 +165,23 @@ legend("bottomleft", pch = c(1, 3, 4), col = c('black', 'blue', "green"),
 # collation to grid ----------------------------------------------------------
 
 # collate to grid
-active <- read.csv("../covariates_spatial/active.csv", skip = 1, header = FALSE)
-all.equal(dim(active), c(1280, 1520)) # expected number of rows and columns
-active <- as.matrix(active)
 library(terra)
-crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
-# extent and crs from active.csv
-active.r <- rast(active[nrow(active):1, ], crs = crs,
-                 extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-res(active.r) # 5000 5000 with skip = 1 but 5000.000 5003.909 with skip = 2 in read.csv above
+active.r <- rast("../covariates_spatial/activeAfrica.tif")
+a.crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" 
+same.crs(crs(active.r), a.crs) # TRUE
+a.crs <- crs(active.r)
 
 # project coords from abundance data and find corresponding cells
 coords <- cbind(ra.dat$Longitudes, ra.dat$Latitudes)
 v <- vect(coords, crs = "epsg:4326")
-proj.coords <- project(v, crs)
-oa <- extract(active.r, v)
+proj.coords <- project(v, a.crs)
 
 o.cells <- cells(active.r, proj.coords)
 # convert centroid of overlaid cells to lat/long
 r.crds <- crds(active.r)
 or.crds <- r.crds[o.cells[ , "cell"], ]
 # project to lat/long
-or.crds <- vect(or.crds, crs = crs)
+or.crds <- vect(or.crds, crs = a.crs)
 por.crds <- project(or.crds, "epsg:4326")
 o.cells <- cbind(o.cells, crds(por.crds))
 

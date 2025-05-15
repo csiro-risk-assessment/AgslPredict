@@ -1,6 +1,6 @@
 # download of precipitations and temperature for relative abundance
 
-# accessed 24/04/2024
+# accessed 01/04/2025
 # data are WGS84
 # https://power.larc.nasa.gov/docs/methodology/
 
@@ -12,7 +12,7 @@
 
 # relative abundance aggregated to grid cells
 # use current ra file
-ra <- readRDS("../RelativeAbundanceData/VB_PCR_rel_abundance_stra.rds")
+ra <- readRDS("../01-RelativeAbundanceData/VB_PCR_rel_abundance_stra.rds")
 
 # lat/long for each cell
 meteo.cells <- unique(ra$cell)

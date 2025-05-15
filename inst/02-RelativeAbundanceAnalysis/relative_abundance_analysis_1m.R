@@ -4,57 +4,7 @@
 
 dat1m <- readRDS("../01-RelativeAbundanceData/ra1m_obs_covs_stra.rds")
 
-# Begin with comparison to previous analysis: a time invariant covariate example.
-# In this section these data are analysed with the model structure proposed for
-# the multinomial GLM analysis of relative abundance in Appendix C.5 of:
-# Hosack, G. R., Beeton, N. J., Ickowicz, A., Peel, D., Wilkins, A., Dambacher, J. M.,
-# Wickramarachchi, A., McDonald, M., Tay, W. T., Wilson, L., Bauer, D., and Hayes, K.
-# R. 2023. Risk Assessment for Controlling Mosquito Vectors with Engineered Nucleases:
-#   Paternal Male Bias Construct. Report No. EP2022-4945. Hobart, Australia: CSIRO.
-# https://doi.org/10.25919/2t8h-5k81
-# Note: For the proposed model in Hosack et al. (2023) the VectorBase data were
-# downloaded in August 2023 using a different user interface and structure as
-# was available on VectorBase.org at that time. These data were not filtered by
-# duration of "sample". The comparative analysis is included here for comparison
-# purposes only and  applies to the data downloaded to directory
-# system.file(package = "AgslPredict", "01-RelativeAbundanceData/")
-# that occurred on 24 April 2024 using the archived version of the legacy map
-# view dated to July 2023 then available on VectorBase.
-
-# time invariant (historical) comparison ---------------------------------------
-
 library(nnet)
-
-# for this "historical" analysis use max 3 month duration of sample
-dat3m <- readRDS("../01-RelativeAbundanceData/ra3m_obs_covs_stra.rds")
-histDat <- dat3m
-
-# frequency counts of species
-histCounts <- cbind(histDat$Aa, histDat$Ac, histDat$Ag)
-
-# predictors
-histPreds <- histDat[ , c("lon.centroid", "lat.centroid",
-                          "d2c", "d2r", "pop", "elev", "origin.year")]
-
-# TRANSFORMATIONS
-# log1p transform for all spatial covariates (except geographic coords)
-histPreds[ , c("d2c", "d2r", "pop", "elev")] <-
-  log1p(histPreds[ , c("d2c", "d2r", "pop", "elev")])
-# absolute value of latitude (relating to insolation)
-histPreds[ , "lat.centroid"] <- abs(histPreds[ , "lat.centroid"])
-
-# fit model
-histMod <- multinom(histCounts ~ (lon.centroid + lat.centroid + d2r + pop + elev)^2 +
-                    + I(lon.centroid^2) + I(lat.centroid^2) + I(d2r^2) + I(pop^2) + I(elev^2) +
-                    + origin.year, data = histPreds, maxit = 200)
-
-# save model estimates
-histEst <- cbind(t(summary(histMod)$coefficients), t(summary(histMod)$standard.errors))
-colnames(histEst) <- c("coeffAcVsAa", "coeffAgVsAa", "seAcVsAa", "seAgVsAa")
-write.csv(histEst, file = "historicalMultinomialModelEstimates3m.csv")
-
-# save model fit
-saveRDS(histMod, "histMultinomialGLMfit.rds")
 
 # time-varying models ----------------------------------------------------------
 
@@ -63,17 +13,12 @@ sp1m <- cbind(dat1m$Aa, dat1m$Ac, dat1m$Ag)
 
 # model selection covariates  --------------------------------------------------
 
-seldat <- dat1m[ , c("lon.centroid", "lat.centroid",
+m1Udat <- dat1m[ , c("lon.centroid", "lat.centroid",
                     "d2c", "d2r", "pop", "elev", "origin.year",
-                    "PRECTOTCORR1m", "T2M1m", "RH2M1m")]
+                    "PRECTOTCORR1m", "T2M1m", "RH2M1m", "IRS", "ITN")]
 
 # use absolute value of latitude for insolation proxy
-seldat$lat.centroid <- abs(seldat$lat.centroid)
-
-## model including only 1 month met covariates ---------------------------------
-
-# drop one month met covariates
-m1Udat <- seldat
+m1Udat$lat.centroid <- abs(m1Udat$lat.centroid)
 
 ### untransformed covariates ---------------------------------------------------
 
@@ -85,12 +30,22 @@ raScaling.ls <- list(
 )
 saveRDS(raScaling.ls, file = "raScaling.rds")
 
-# fit initial full model
+# IRS intervention more likely regional and outside of An. coluzzii range
+colSums(dat1m[ , c("Aa", "Ac", "Ag")])/sum((dat1m[ , c("Aa", "Ac", "Ag")]))
+colSums(dat1m[dat1m$IRS > 0, c("Aa", "Ac", "Ag")])/sum(dat1m[dat1m$IRS > 0, c("Aa", "Ac", "Ag")])
+# whereas ITN coverage occurs across all species ranges
+colSums(dat1m[dat1m$ITN > 0, c("Aa", "Ac", "Ag")])/sum(dat1m[dat1m$ITN > 0, c("Aa", "Ac", "Ag")])
+
+# fit initial full model with vector intervention spatio-temporal covariates
+# more extensive ITN coverage: include main effect and year interaction
+# less extensive IRS coverage: main IRS effect only because interaction may be
+# conflated with taxonomic ID annual trend for Ac
 m1U.init <- multinom(sp1m ~ (lon.centroid + lat.centroid + d2r + pop + elev + d2c +
                                PRECTOTCORR1m + T2M1m + RH2M1m)^2 +
                        + I(lon.centroid^2) + I(lat.centroid^2) + I(d2r^2) + I(pop^2) + I(elev^2) + I(d2c^2) +
                        + I(PRECTOTCORR1m^2) + I(T2M1m^2) + I(RH2M1m^2) +
-                       + origin.year, data = m1UdatScaled, maxit = 2000)
+                       + origin.year + ITN,
+                     data = m1UdatScaled, maxit = 2000)
 
 # backwards stepwise selection based on AIC
 m1U.stp <- MASS::stepAIC(m1U.init,
@@ -99,60 +54,30 @@ m1U.stp <- MASS::stepAIC(m1U.init,
                                         PRECTOTCORR1m + T2M1m + RH2M1m)^2 +
                              + I(lon.centroid^2) + I(lat.centroid^2) + I(d2r^2) + I(pop^2) + I(elev^2) + I(d2c^2) +
                              + I(PRECTOTCORR1m^2) + I(T2M1m^2) + I(RH2M1m^2) +
-                             + origin.year,
+                             + origin.year + ITN,
                            lower = ~1),
                          direction = "backward", k = log(nrow(m1UdatScaled))
-)
-
-## transformed covariates ------------------------------------------------------
-
-# log1p transform all nonnegative covariates (excluding longitude)
-m1Tdat <- m1Udat
-m1Tdat[ , -1] <- log1p(m1Udat[ , -1])
-
-# scale covariate data to speed up convergence
-m1TdatScaled <- as.data.frame(apply(m1Tdat, 2, function(x) (x - min(x))/(max(x) - min(x))))
-
-# fit initial full model
-m1T.init <- multinom(sp1m ~ (lon.centroid + lat.centroid + d2r + pop + elev + d2c +
-                               PRECTOTCORR1m + T2M1m + RH2M1m)^2 +
-                       + I(lon.centroid^2) + I(lat.centroid^2) + I(d2r^2) + I(pop^2) + I(elev^2) + I(d2c^2) +
-                       + I(PRECTOTCORR1m^2) + I(T2M1m^2) + I(RH2M1m^2) +
-                       + origin.year, data = m1TdatScaled, maxit = 2000)
-
-# backwards stepwise selection based on AIC
-m1T.stp <- MASS::stepAIC(m1T.init,
-                         scope = list(
-                           upper = ~ (lon.centroid + lat.centroid + d2r + pop + elev + d2c +
-                                        PRECTOTCORR1m + T2M1m + RH2M1m)^2 +
-                             + I(lon.centroid^2) + I(lat.centroid^2) + I(d2r^2) + I(pop^2) + I(elev^2) + I(d2c^2) +
-                             + I(PRECTOTCORR1m^2) + I(T2M1m^2) + I(RH2M1m^2) +
-                             + origin.year,
-                           lower = ~1),
-                         direction = "backward", k = log(nrow(m1TdatScaled))
 )
 
 ## comparison ------------------------------------------------------------------
 
 # BIC for initial full models
-# best fitting model is with untransformed covariates
-BIC(m1U.init, m1T.init)
-BIC(m1U.stp, m1T.stp)
+BIC(m1U.init, m1U.stp)
 
 # selected final model ---------------------------------------------------------
 # model with  untransformed covariates
-ra.model <- multinom(sp1m ~ lon.centroid + lat.centroid + d2r + pop + elev + d2c +
-                       PRECTOTCORR1m + T2M1m + RH2M1m + I(lon.centroid^2) + I(d2r^2) +
-                       I(d2c^2) + I(PRECTOTCORR1m^2) + I(T2M1m^2) + I(RH2M1m^2) +
-                       origin.year + lon.centroid:lat.centroid + lon.centroid:d2r +
-                       lon.centroid:pop + lon.centroid:elev + lon.centroid:d2c +
-                       lon.centroid:PRECTOTCORR1m + lon.centroid:T2M1m + lon.centroid:RH2M1m +
-                       lat.centroid:d2r + lat.centroid:pop + lat.centroid:elev +
-                       lat.centroid:d2c + lat.centroid:PRECTOTCORR1m + lat.centroid:T2M1m +
-                       d2r:pop + d2r:elev + d2r:d2c + d2r:PRECTOTCORR1m + d2r:T2M1m +
-                       d2r:RH2M1m + pop:elev + pop:d2c + pop:T2M1m + pop:RH2M1m +
-                       elev:d2c + elev:T2M1m + elev:RH2M1m + d2c:PRECTOTCORR1m +
-                       d2c:T2M1m + d2c:RH2M1m + PRECTOTCORR1m:T2M1m + PRECTOTCORR1m:RH2M1m +
+ra.model <- multinom(sp1m ~ lon.centroid + lat.centroid + d2r + pop + elev + d2c + 
+                       PRECTOTCORR1m + T2M1m + RH2M1m + I(lon.centroid^2) + I(d2r^2) + 
+                       I(elev^2) + I(d2c^2) + I(PRECTOTCORR1m^2) + I(T2M1m^2) + 
+                       I(RH2M1m^2) + origin.year + ITN + lon.centroid:lat.centroid + 
+                       lon.centroid:d2r + lon.centroid:pop + lon.centroid:elev + 
+                       lon.centroid:d2c + lon.centroid:PRECTOTCORR1m + lon.centroid:T2M1m + 
+                       lon.centroid:RH2M1m + lat.centroid:d2r + lat.centroid:pop + 
+                       lat.centroid:elev + lat.centroid:d2c + lat.centroid:PRECTOTCORR1m + 
+                       lat.centroid:T2M1m + d2r:pop + d2r:elev + d2r:d2c + d2r:PRECTOTCORR1m + 
+                       d2r:T2M1m + d2r:RH2M1m + pop:elev + pop:d2c + pop:T2M1m + 
+                       pop:RH2M1m + elev:d2c + elev:T2M1m + d2c:PRECTOTCORR1m + 
+                       d2c:T2M1m + d2c:RH2M1m + PRECTOTCORR1m:T2M1m + PRECTOTCORR1m:RH2M1m + 
                        T2M1m:RH2M1m,
                      data = m1UdatScaled, maxit = 1000)
 all.equal(formula(m1U.stp), formula(ra.model))
