@@ -1,11 +1,3 @@
-# outputs:
-
-
-# inputs:
-
-
-
-
 # spatial covariates
 # Lambert azimuthal equal area
 # see Steinwand et al. (1995)
