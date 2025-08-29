@@ -18,29 +18,13 @@ for (i in 1:length(res.files)) {
   results[res.ids, 5:ncol(res)] <- res[res.ids, 5:ncol(res)] 
 }
 
-# human population -------------------------------------------------------------
-crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
+# active cells -----------------------------------------------------------------
 
 library(terra)
-
 active.r <- rast("../covariates_spatial/activeAfrica.tif")
-same.crs(crs(active.r), crs) # TRUE
-res(active.r) 
-
-## read in remaining spatial covariate .csv files
-
-# check for correct extent info
-all(read.csv("../covariates_spatial/pop.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-pop <- read.csv("../covariates_spatial/pop.csv", skip = 1, header = FALSE)
-all.equal(dim(pop), c(1280, 1520))
-pop <- as.matrix(pop)
-pop.r <- rast(pop[nrow(pop):1, ], crs = crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-
-res(pop.r)
 
 # temperature mask -------------------------------------------------------------
+# produced by script "tempMask.R"
 
 tmask <- readRDS("threshmat.rds")
 results[tmask[ , "TOK"] == 0, c(
@@ -51,71 +35,64 @@ results[tmask[ , "TOK"] == 0, c(
   "Ag_y2008",  "Ag_y2014",  "Ag_y2020"
 )] <- 0
 
-# total pop --------------------------------------------------------------------
-
-# A recommendation on the method to delineate cities, urban and rural areas
-# for international statistical comparisons
-# Prepared by the European Commission – Eurostat and DG for Regional and Urban Policy –
-# ILO, FAO, OECD, UN-Habitat, World Bank
-urban.threshold <- 1500 # per km^2
-sum(values(pop.r) > urban.threshold, na.rm = TRUE)/sum(!is.na(values(pop.r)))
-
-thresh.ids <- which(values(pop.r) > 1500)
-
-# mask urban areas
-results.nu <- results
-results.nu[results.nu[ , "cell"]%in%thresh.ids, 7:ncol(results.nu)] <- NA
-
-formatC(sum(results.nu[ , "Aa_mean"], na.rm = TRUE))
-formatC(sum(results.nu[ , "Ac_mean"], na.rm = TRUE))
-formatC(sum(results.nu[ , "Ag_mean"], na.rm = TRUE))
-
-# adult population size estimates: both sexes
-# Aa, Ac, Ag by year and overall average
+# adult effective population size estimates: both sexes -------------------------
 # Ac + Ag effective population size
-pop.tab <- matrix(NA, nrow = 5, ncol = 1,
-                  dimnames = list(Years = c("2002", "2008", "2014", "2020", "Mean"),
+pop.tab <- matrix(NA, nrow = 4, ncol = 1,
+                  dimnames = list(Years = c("2002", "2008", "2014", "2020"),
                                   Population = c("Effective")))
 # Ac + Ag
 # adjust for rough ratio of effective population size to total Ac + Ag (female + male)
+# thresholding high density urban cells
 pop.tab["2002", c("Effective")] <-
-  formatC(sum(rowSums(results.nu[ , c("Ac_y2002", "Ag_y2002")]*2*0.10, na.rm = TRUE)), digits = 3)
+  formatC(sum(rowSums(results[ , c("Ac_y2002", "Ag_y2002")]*2*0.10, na.rm = TRUE)), digits = 3)
 pop.tab["2008", c("Effective")] <-
-  formatC(sum(rowSums(results.nu[ , c("Ac_y2008", "Ag_y2008")]*2*0.10, na.rm = TRUE)), digits = 3)
+  formatC(sum(rowSums(results[ , c("Ac_y2008", "Ag_y2008")]*2*0.10, na.rm = TRUE)), digits = 3)
 pop.tab["2014", c("Effective")] <-
-  formatC(sum(rowSums(results.nu[ , c("Ac_y2014", "Ag_y2014")]*2*0.10, na.rm = TRUE)), digits = 3)
+  formatC(sum(rowSums(results[ , c("Ac_y2014", "Ag_y2014")]*2*0.10, na.rm = TRUE)), digits = 3)
 pop.tab["2020", c("Effective")] <-
-  formatC(sum(rowSums(results.nu[ , c("Ac_y2020", "Ag_y2020")]*2*0.10, na.rm = TRUE)), digits = 3)
-pop.tab["Mean", c("Effective")] <-
-  formatC(sum(rowSums(results.nu[ , c("Ac_mean", "Ag_mean")]*2*0.10, na.rm = TRUE)), digits = 3)
+  formatC(sum(rowSums(results[ , c("Ac_y2020", "Ag_y2020")]*2*0.10, na.rm = TRUE)), digits = 3)
 
 library(xtable)
 
 s <- sanitize.numbers(pop.tab, type = "latex", math.style.exponents = TRUE)
+print(xtable(s), file = "AcAg_effective.txt")
 
-# EIR
+# EIR comparison East Africa ---------------------------------------------------
+pop.files <- paste0("../human_pop/human_pop_", 2002:2020, ".tif")
+pop.r <- rast(pop.files)
+names(pop.r) <- paste0("Y", 2002:2020)
 hpop <- extract(pop.r, results[ , c('x', 'y')])
 
 # approx species feeding rates from daily feeding probabilities
-rate <- matrix(-log((1 - c(0.37, 0.49, 0.47))), nrow = nrow(results.nu), ncol = 3, byrow = TRUE)
+rate <- matrix(-log((1 - c(0.37, 0.49, 0.47))), nrow = nrow(results), ncol = 3, byrow = TRUE)
 
 # sporozoite rates for An. gambiae s.l. from Table 3 in Msugupakulya et al. (2023)
-bv2002 <- rowSums(results.nu[ , c("Aa_y2002", "Ac_y2002", "Ag_y2002")]*rate, na.rm = TRUE)*0.015 
-bv2020 <- rowSums(results.nu[ , c("Aa_y2020", "Ac_y2020", "Ag_y2020")]*rate, na.rm = TRUE)*0.010
-# divide by human population
-bv2002 <- bv2002/(hpop$lyr.1*25)
-bv2020 <- bv2020/(hpop$lyr.1*25)
+bv2002 <- rowSums(results[ , c("Aa_y2002", "Ac_y2002", "Ag_y2002")]*rate, na.rm = TRUE)*0.015 
+bv2020 <- rowSums(results[ , c("Aa_y2020", "Ac_y2020", "Ag_y2020")]*rate, na.rm = TRUE)*0.010
+# divide by human population --> cells with zero population NaN for EIR comparison
+bv2002 <- bv2002/(hpop["Y2002"])
+bv2020 <- bv2020/(hpop["Y2020"])
 # annualise 
 bv2002 <- bv2002*365
 bv2020 <- bv2020*365
-# # # filter to at least 50 inhabitants per sq km
-# bv2002 <- bv2002[hp]
-# bv2020 <- bv2020[hp]
 
 qs <- c(0.1, 0.5, 0.9)
-quantile(bv2002[results.nu[ , "lon"] >= 30], qs, na.rm = TRUE)
-quantile(bv2020[results.nu[ , "lon"] >= 30], qs, na.rm = TRUE)
+EIR.tab <- matrix(NA, nrow = 3, ncol = 2,
+                  dimnames = list(q = qs,
+                                  EIR = c("2002",
+                                    "2020" 
+                                  ))
+                  )
+# window: east of 28 degrees E and south of 4 degrees N
+# Fig. 5 in Msugupakulya et al. (2023)
+EIR.tab[ , "2002"] <-
+  quantile(bv2002[results[ , "lon"] >= 28 & results[ , "lat"] <= 4, ], qs, na.rm = TRUE)
+EIR.tab[ , "2020"] <-
+  quantile(bv2020[results[ , "lon"] >= 28 & results[ , "lat"] <= 4, ], qs, na.rm = TRUE)
+print(xtable(EIR.tab, digits = 1), file = "EIR.txt")
 
+# results for spatial plots
+results.nu <- results
 saveRDS(results.nu, file = "resultsNU.rds")
 
 # raster layers ----------------------------------------------------------------
@@ -186,23 +163,19 @@ library(rnaturalearth)
 library(rasterVis)
 library(latticeExtra)
 
-RColorBrewer::display.brewer.all(n=7, type="seq", select=NULL, exact.n=TRUE,
-                                                     colorblindFriendly=TRUE)
-RColorBrewer::display.brewer.all(n=7, type="div", select=NULL, exact.n=TRUE,
-                                 colorblindFriendly=TRUE)
-
 # shoreline from rnaturalearth
 shore <- ne_coastline(scale = "medium", returnclass = "sv")
 
 ## annual ----------------------------------------------------------------------
 
-brks <- c(0, 10^(0:7))
-tcks <- 0:8
+brks <- c(0, 10^(0:8))
+tcks <- 0:9
 labs <- c(0, 1, 10,
           expression(10^2), expression(10^3), expression(10^4),
-          expression(10^5), expression(10^6), expression(10^7)
+          expression(10^5), expression(10^6), expression(10^7),
+          expression(10^8)
           )
-cols <- c(grey(0.5), RColorBrewer::brewer.pal(7, "YlOrRd"))
+cols <- c(grey(0.5), RColorBrewer::brewer.pal(8, "YlOrRd"))
 rtheme <- rasterTheme(region = cols)
 ann.theme <- rasterTheme(
   region = cols,
@@ -217,7 +190,7 @@ levelplot(res.r[[c("Aa_mean", "Ac_mean", "Ag_mean")]],
           names.attr = c(
             expression(italic("An. arabiensis")),
             expression(italic("An. coluzzii")),
-            expression(italic("An. gambiae")~s.s.)
+            expression(italic("An. gambiae s.s."))
           ),
           layout = c(3, 1),
           par.settings = ann.theme,
@@ -282,7 +255,7 @@ png("Q_Ag.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Ag_Q1", "Ag_Q2", "Ag_Q3", "Ag_Q4")]],
           maxpixel = 2.3e6,
           main = expression(paste("Quarterly average abundance: ",
-                                  italic("An. gambiae"), " s.s.")),
+                                  italic("An. gambiae s.s."))),
           names.attr = paste0("Q", 1:4),
           layout = c(2, 2),
           par.settings = quart.theme,
@@ -357,7 +330,7 @@ png("Anom_Ag.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Ag_anom2002", "Ag_anom2008", "Ag_anom2014", "Ag_anom2020")]],
           maxpixel = 2.3e6,
           main = expression(paste("Anomaly relative to 2002-2020 average: ",
-                                  italic("An. gambiae"), " s.s.")),
+                                  italic("An. gambiae s.s."))),
           names.attr = c("2002", "2008", "2014", "2020"),
           layout = c(2, 2),
           par.settings = anom.theme,
@@ -374,13 +347,8 @@ dev.off()
 
 ## raw rel abundance------------------------------------------------------------
 
-brks <- seq(from = 0, to = 1, length.out = 9)
-tcks <- brks
-labs <- brks
-cols <- c(grey(0.5), RColorBrewer::brewer.pal(7, "YlOrRd"))
-rtheme <- rasterTheme(region = cols)
 ann.theme <- rasterTheme(
-  region = cols,
+  region = viridis::viridis(20),
   layout.heights=list(top.padding = -2,
                       bottom.padding = -2)
 )
@@ -392,18 +360,16 @@ levelplot(res.r[[c("Aa_r", "Ac_r", "Ag_r")]],
           names.attr = c(
             expression(italic("An. arabiensis")),
             expression(italic("An. coluzzii")),
-            expression(italic("An. gambiae")~s.s.)
+            expression(italic("An. gambiae s.s."))
           ),
           layout = c(3, 1),
           par.settings = ann.theme,
-          at = brks,
-          colorkey = list(
-            at = tcks,
-            labels = list(
-              at = tcks,
-              labels = labs
-            )
-          )
+          # at = brks,
+          colorkey = list(at = seq(0, 1, 0.05),
+                          labels = list(
+                            at = seq(0, 1, by = 0.1),
+                            labels = seq(0, 1, by = 0.1)
+                          ))
 ) + layer(llines(shore, col = "black"))
 dev.off()
 
@@ -416,7 +382,7 @@ levelplot(res.r[[c("logAcAa_v", "logAgAa_v")]],
           main = "Average prediction variance",
           names.attr = c(
             expression(paste("log ", italic("An. coluzzii") / italic("An. arabiensis"))),
-            expression(paste("log ", italic("An. gambiae")~s.s. / italic("An. arabiensis")))
+            expression(paste("log ", italic("An. gambiae s.s.") / italic("An. arabiensis")))
           ),
           layout = c(2, 1),
           zscaleLog = TRUE

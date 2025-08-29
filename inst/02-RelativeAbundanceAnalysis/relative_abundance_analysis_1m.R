@@ -14,15 +14,15 @@ sp1m <- cbind(dat1m$Aa, dat1m$Ac, dat1m$Ag)
 # model selection covariates  --------------------------------------------------
 
 m1Udat <- dat1m[ , c("lon.centroid", "lat.centroid",
-                    "d2c", "d2r", "pop", "elev", "origin.year",
+                    "d2c", "ppw", "elev", "origin.year", "hpd",
                     "PRECTOTCORR1m", "T2M1m", "RH2M1m", "IRS", "ITN")]
 
 # use absolute value of latitude for insolation proxy
 m1Udat$lat.centroid <- abs(m1Udat$lat.centroid)
+# human population urban threshold
+m1Udat$hpd <- ifelse(m1Udat$hpd < 2000, m1Udat$hpd, 2000)
 
-### untransformed covariates ---------------------------------------------------
-
-# scale covariate data to speed up convergence
+# scale covariate data to speed up convergence ---------------------------------
 m1UdatScaled <- as.data.frame(apply(m1Udat, 2, function(x) (x - min(x))/(max(x) - min(x))))
 raScaling.ls <- list(
   mins = apply(m1Udat, 2, min),
@@ -40,23 +40,24 @@ colSums(dat1m[dat1m$ITN > 0, c("Aa", "Ac", "Ag")])/sum(dat1m[dat1m$ITN > 0, c("A
 # more extensive ITN coverage: include main effect and year interaction
 # less extensive IRS coverage: main IRS effect only because interaction may be
 # conflated with taxonomic ID annual trend for Ac
-m1U.init <- multinom(sp1m ~ (lon.centroid + lat.centroid + d2r + pop + elev + d2c +
-                               PRECTOTCORR1m + T2M1m + RH2M1m)^2 +
-                       + I(lon.centroid^2) + I(lat.centroid^2) + I(d2r^2) + I(pop^2) + I(elev^2) + I(d2c^2) +
+m1U.init <- multinom(sp1m ~ (lon.centroid + lat.centroid + ppw + elev + d2c +
+                               PRECTOTCORR1m + T2M1m + RH2M1m + hpd)^2 +
+                       + I(lon.centroid^2) + I(lat.centroid^2) + I(ppw^2) + I(elev^2) + I(d2c^2) + I(hpd^2) + 
                        + I(PRECTOTCORR1m^2) + I(T2M1m^2) + I(RH2M1m^2) +
-                       + origin.year + ITN,
+                       + (origin.year + ITN)^2,
                      data = m1UdatScaled, maxit = 2000)
+BIC(m1U.init)
 
-# backwards stepwise selection based on AIC
+# backwards stepwise selection based on BIC
 m1U.stp <- MASS::stepAIC(m1U.init,
                          scope = list(
-                           upper = ~ (lon.centroid + lat.centroid + d2r + pop + elev + d2c +
-                                        PRECTOTCORR1m + T2M1m + RH2M1m)^2 +
-                             + I(lon.centroid^2) + I(lat.centroid^2) + I(d2r^2) + I(pop^2) + I(elev^2) + I(d2c^2) +
+                           upper = ~ (lon.centroid + lat.centroid + ppw + elev + d2c +
+                                        PRECTOTCORR1m + T2M1m + RH2M1m + hpd)^2 +
+                             + I(lon.centroid^2) + I(lat.centroid^2) + I(ppw^2) + I(elev^2) + I(d2c^2) + I(hpd^2) + 
                              + I(PRECTOTCORR1m^2) + I(T2M1m^2) + I(RH2M1m^2) +
-                             + origin.year + ITN,
-                           lower = ~1),
-                         direction = "backward", k = log(nrow(m1UdatScaled))
+                             + (origin.year + ITN)^2,
+                           lower = ~ 1),
+                         direction = "backward", k = log(sum(sp1m))
 )
 
 ## comparison ------------------------------------------------------------------
@@ -66,19 +67,18 @@ BIC(m1U.init, m1U.stp)
 
 # selected final model ---------------------------------------------------------
 # model with  untransformed covariates
-ra.model <- multinom(sp1m ~ lon.centroid + lat.centroid + d2r + pop + elev + d2c + 
-                       PRECTOTCORR1m + T2M1m + RH2M1m + I(lon.centroid^2) + I(d2r^2) + 
-                       I(elev^2) + I(d2c^2) + I(PRECTOTCORR1m^2) + I(T2M1m^2) + 
+ra.model <- multinom(sp1m ~ lon.centroid + lat.centroid + ppw + elev + d2c + PRECTOTCORR1m + 
+                       T2M1m + RH2M1m + hpd + I(lon.centroid^2) + I(lat.centroid^2) + 
+                       I(ppw^2) + I(elev^2) + I(hpd^2) + I(PRECTOTCORR1m^2) + I(T2M1m^2) + 
                        I(RH2M1m^2) + origin.year + ITN + lon.centroid:lat.centroid + 
-                       lon.centroid:d2r + lon.centroid:pop + lon.centroid:elev + 
-                       lon.centroid:d2c + lon.centroid:PRECTOTCORR1m + lon.centroid:T2M1m + 
-                       lon.centroid:RH2M1m + lat.centroid:d2r + lat.centroid:pop + 
-                       lat.centroid:elev + lat.centroid:d2c + lat.centroid:PRECTOTCORR1m + 
-                       lat.centroid:T2M1m + d2r:pop + d2r:elev + d2r:d2c + d2r:PRECTOTCORR1m + 
-                       d2r:T2M1m + d2r:RH2M1m + pop:elev + pop:d2c + pop:T2M1m + 
-                       pop:RH2M1m + elev:d2c + elev:T2M1m + d2c:PRECTOTCORR1m + 
-                       d2c:T2M1m + d2c:RH2M1m + PRECTOTCORR1m:T2M1m + PRECTOTCORR1m:RH2M1m + 
-                       T2M1m:RH2M1m,
+                       lon.centroid:elev + lon.centroid:d2c + lon.centroid:PRECTOTCORR1m + 
+                       lon.centroid:T2M1m + lon.centroid:RH2M1m + lon.centroid:hpd + 
+                       lat.centroid:ppw + lat.centroid:elev + lat.centroid:d2c + 
+                       lat.centroid:T2M1m + lat.centroid:hpd + ppw:elev + ppw:d2c + 
+                       ppw:PRECTOTCORR1m + ppw:T2M1m + ppw:RH2M1m + ppw:hpd + elev:d2c + 
+                       elev:PRECTOTCORR1m + elev:T2M1m + elev:hpd + d2c:PRECTOTCORR1m + 
+                       d2c:RH2M1m + d2c:hpd + PRECTOTCORR1m:T2M1m + PRECTOTCORR1m:RH2M1m + 
+                       T2M1m:RH2M1m + T2M1m:hpd + RH2M1m:hpd + origin.year:ITN,
                      data = m1UdatScaled, maxit = 1000)
 all.equal(formula(m1U.stp), formula(ra.model))
 
@@ -158,7 +158,7 @@ dev.off()
 mPred <- readRDS("multinomialGLMfit1m.rds")
 
 # untransformed covariates for prediction
-Preds.df <- m1Udat
+Preds.df <- m1UdatScaled
 # using max origin year
 Preds.df$origin.year <- max(Preds.df$origin.year)
 m.P <- predict(mPred, Preds.df, type = "probs")

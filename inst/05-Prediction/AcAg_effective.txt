@@ -1,0 +1,15 @@
+% latex table generated in R 4.4.2 by xtable 1.8-4 package
+% Mon Aug 18 08:15:56 2025
+\begin{table}[ht]
+\centering
+\begin{tabular}{rl}
+  \hline
+ & Effective \\ 
+  \hline
+2002 & \$8.55 $\backslash$times 10\verb|^|\{9\}\$ \\ 
+  2008 & \$8.74 $\backslash$times 10\verb|^|\{9\}\$ \\ 
+  2014 & \$5.29 $\backslash$times 10\verb|^|\{9\}\$ \\ 
+  2020 & \$6.61 $\backslash$times 10\verb|^|\{9\}\$ \\ 
+   \hline
+\end{tabular}
+\end{table}

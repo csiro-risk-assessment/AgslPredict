@@ -21,36 +21,12 @@ a.crs <- crs(active.r)
 
 elev.r <- rast("../covariates_spatial/elev.tif")
 
-## read in remaining spatial covariate .csv files ------------------------------
+## read in remaining spatial covariate files ------------------------------
 
-# check for correct extent info
-all(read.csv("../covariates_spatial/d2c.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/d2r.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/pop.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
+d2c.r <- rast("../covariates_spatial/d2c.tif")
+ppw.r <- rast("../covariates_spatial/lakesrivers.tif")
 
-d2c <- read.csv("../covariates_spatial/d2c.csv", skip = 1, header = FALSE)
-d2r <- read.csv("../covariates_spatial/d2r.csv", skip = 1, header = FALSE)
-pop <- read.csv("../covariates_spatial/pop.csv", skip = 1, header = FALSE)
-
-all.equal(dim(d2c), c(1280, 1520))
-all.equal(dim(d2r), c(1280, 1520))
-all.equal(dim(pop), c(1280, 1520))
-
-d2c <- as.matrix(d2c)
-d2r <- as.matrix(d2r)
-pop <- as.matrix(pop)
-
-d2c.r <- rast(d2c[nrow(d2c):1, ], crs = a.crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-d2r.r <- rast(d2r[nrow(d2r):1, ], crs = a.crs,
-              extent =  c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-pop.r <- rast(pop[nrow(pop):1, ], crs = a.crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-
-res(d2c.r); res(d2r.r); res(pop.r); res(elev.r)
+res(d2c.r); res(ppw.r); res(elev.r)
 
 ## assign spatial covariate values to relative abundance data ------------------
 
@@ -65,15 +41,13 @@ plot(proj.coords, add = TRUE)
 
 o.d2c <- extract(d2c.r, proj.coords)
 sum(o.d2c[ , 2] >= 0) == nrow(proj.coords)
-o.d2r <- extract(d2r.r, proj.coords)
-sum(o.d2r[ , 2] >= 0) == nrow(proj.coords)
-o.pop <- extract(pop.r, proj.coords)
-sum(o.pop[ , 2] >= 0) == nrow(proj.coords)
-o.elev <- extract(elev.r, proj.coords) # no missing values
+o.ppw <- extract(ppw.r, proj.coords)
+sum(o.ppw[ , 2] >= 0) == nrow(proj.coords)
+o.elev <- extract(elev.r, proj.coords) 
+sum(o.elev[ , 2] >= -155) == nrow(proj.coords)
 
 ra$d2c <- o.d2c[ , 2]
-ra$d2r <- o.d2r[ , 2]
-ra$pop <- o.pop[ , 2]
+ra$ppw <- o.ppw[ , 2]
 ra$elev <- o.elev[ , 2]
 
 #  vector intervention covariates (spatio-temporal) ----------------------------
@@ -130,6 +104,28 @@ for (y in Y) {
   o.itn.y <- extract(itn, proj.coords)
   ra$ITN[ra$origin.year == y] <- o.itn.y[ra$origin.year == y, 2]
 }
+
+# human population density -----------------------------------------------------
+
+ra$hpd <- NA
+for (y in Y) {
+  hpd <- rast(paste0("../human_pop/human_density_", y, ".tif"))
+  same.crs(active.r, hpd) # TRUE
+  o.hpd.y <- extract(hpd, proj.coords)
+  ra$hpd[ra$origin.year == y] <- o.hpd.y[ra$origin.year == y, 2]
+}
+
+# human pop density data missing
+na.hpd <- ra$cell[which(is.na(ra$hpd))] # 1402901 in year 2001
+
+pt <- crds(proj.coords[ra$cell == 1402901, ])
+hpd <- rast(paste0("../human_pop/human_density_", 2001, ".tif"))
+plot(hpd, xlim = c(-1e5, 1e5) + pt[1, "x"], ylim = c(-1e5, 1e5) + pt[1, "y"])
+plot(proj.coords[ra$cell == 1402901, ], add = TRUE, col = 'red') # coastal ocean
+# assign nearest coastal density
+points(3203366 - 5000*2.75, -2414849 + 3500, col = 'cyan')
+extract(hpd, matrix(c(3203366 - 5000*2.75, -2414849 + 3500), nrow = 1), cells = TRUE)
+ra[ra$cell == 1402901, "hpd"] <- 11.69416
 
 # meteorological covariates ----------------------------------------------------
 

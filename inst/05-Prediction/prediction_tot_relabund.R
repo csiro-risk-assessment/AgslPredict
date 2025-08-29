@@ -57,44 +57,27 @@ ITN.files <- paste0("../vector_intervention/ITN_", YITN, ".tif")
 itn.r <- rast(ITN.files)
 names(itn.r) <- paste0("Y", YITN)
 
+# human population density and total population (spatio-temporal) --------------
+
+hpd.files <- paste0("../human_pop/human_density_", YITN, ".tif")
+hpd.r <- rast(hpd.files)
+names(hpd.r) <- paste0("Y", YITN)
+
+pop.files <- paste0("../human_pop/human_pop_", YITN, ".tif")
+pop.r <- rast(pop.files)
+names(pop.r) <- paste0("Y", YITN)
+
+# active grid
 active.r <- rast("../covariates_spatial/activeAfrica.tif")
 same.crs(crs(active.r), crs) # TRUE
 res(active.r)
 
-## read in elevation
-
+## read in spatial covariates
 elev.r <- rast("../covariates_spatial/elev.tif")
+d2c.r <- rast("../covariates_spatial/d2c.tif")
+ppw.r <- rast("../covariates_spatial/lakesrivers.tif")
 
-## read in remaining spatial covariate .csv files
-
-# check for correct extent info
-all(read.csv("../covariates_spatial/d2c.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/d2r.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/pop.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-
-d2c <- read.csv("../covariates_spatial/d2c.csv", skip = 1, header = FALSE)
-d2r <- read.csv("../covariates_spatial/d2r.csv", skip = 1, header = FALSE)
-pop <- read.csv("../covariates_spatial/pop.csv", skip = 1, header = FALSE)
-
-all.equal(dim(d2c), c(1280, 1520))
-all.equal(dim(d2r), c(1280, 1520))
-all.equal(dim(pop), c(1280, 1520))
-
-d2c <- as.matrix(d2c)
-d2r <- as.matrix(d2r)
-pop <- as.matrix(pop)
-
-d2c.r <- rast(d2c[nrow(d2c):1, ], crs = crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-d2r.r <- rast(d2r[nrow(d2r):1, ], crs = crs,
-              extent =  c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-pop.r <- rast(pop[nrow(pop):1, ], crs = crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-
-res(d2c.r); res(d2r.r); res(pop.r); res(elev.r)
+res(d2c.r); res(ppw.r); res(elev.r)
 
 # meteorological covariates ----------------------------------------------------
 
@@ -173,8 +156,9 @@ iter <- 1
 N <- nrow(ap.crds)
 pt <- proc.time()["elapsed"]
 
-start.id <- ((id - 1)*1000 + 1)
-end.id <- min(id*1000, length(u.cells))
+# id from commandArgs() or set (e.g., id <- 1)
+start.id <- ((id - 1)*250 + 1)
+end.id <- min(id*250, length(u.cells))
 
 u.cells <- u.cells[start.id:end.id]
 
@@ -187,36 +171,36 @@ for (u in u.cells) {
                         ".rds"))
 
   ### abundance uses 10 day (immature duration) average of
-  # weekly running means of precip
+  # weekly running means of precip and relative humidity
   # row 215 of met is 1 Jan 2002
   # row 7154 of met is 31 Dec 2020
   immprecip <- cbind(
-    filter(met[(215 - 7):(7154 - 1), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 7):(7154 - 1), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 1
-    filter(met[(215 - 8):(7154 - 2), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 8):(7154 - 2), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 2
-    filter(met[(215 - 9):(7154 - 3), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 9):(7154 - 3), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 3
-    filter(met[(215 - 10):(7154 - 4), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 10):(7154 - 4), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 4
-    filter(met[(215 - 11):(7154 - 5), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 11):(7154 - 5), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 5
-    filter(met[(215 - 12):(7154 - 6), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 12):(7154 - 6), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 6
-    filter(met[(215 - 13):(7154 - 7), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 13):(7154 - 7), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 7
-    filter(met[(215 - 14):(7154 - 8), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 14):(7154 - 8), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 8
-    filter(met[(215 - 15):(7154 - 9), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 15):(7154 - 9), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1), # lag 9
-    filter(met[(215 - 16):(7154 - 10), c("T2M", "PRECTOTCORR")],
+    filter(met[(215 - 16):(7154 - 10), c("RH2M", "PRECTOTCORR")],
            rep(1/7, 7), sides = 1) # lag 10
   )
   immprecip <- immprecip[7:nrow(immprecip), ] # drop first 7 days of running means
-  colnames(immprecip) <- paste0(c("t_lag", "p_lag"), rep(1:10, each = 2))
+  colnames(immprecip) <- paste0(c("r_lag", "p_lag"), rep(1:10, each = 2))
 
   pmeans <- rowMeans(immprecip[ , grep("p_lag", colnames(immprecip))])
-  tmeans <- rowMeans(immprecip[ , grep("t_lag", colnames(immprecip))])
+  rmeans <- rowMeans(immprecip[ , grep("r_lag", colnames(immprecip))])
 
   # observation covariates: known zero values
   obs.cov <- matrix(0, nrow = nrow(immprecip), ncol = length(obs.names),
@@ -242,12 +226,11 @@ for (u in u.cells) {
     ## spatial covariates ------------------------------------------------------
     scovs <- c(
       as.numeric(d2c.r[a]),
-      as.numeric(pop.r[a]),
-      as.numeric(d2r.r[a]),
+      as.numeric(ppw.r[a]),
       as.numeric(elev.r[a]),
       pa.crds[a, ] # lon, lat
     )
-    names(scovs) <- c("d2c", "pop", "d2r", "elev", "lon.centroid", "lat.centroid")
+    names(scovs) <- c("d2c", "ppw", "elev", "lon.centroid", "lat.centroid")
 
     # warning check on lon/lat
     if (abs(scovs["lon.centroid"] - met[1, "LON"]) > 5/8)
@@ -255,29 +238,40 @@ for (u in u.cells) {
     if (abs(scovs["lat.centroid"] - met[1, "LAT"]) > 0.5)
       stop("latitude for active cell unexpectedly far from MERRA-2 gridpoint")
 
-    if (!any(is.na(scovs)) && !is.na(as.numeric(itn.r[[1]][a]))) {
+    if (!any(is.na(scovs)) && !is.na(as.numeric(itn.r[[1]][a])) &&
+        !is.na(as.numeric(hpd.r[[1]][a])) && !is.na(as.numeric(pop.r[[1]][a]))) {
 
+      # transformation for absolute value of latitude
       scovs["lat.centroid"] <- abs(scovs["lat.centroid"])
+
       scovs.mat <- matrix(scovs, byrow = TRUE, nrow = nrow(ra.1m), ncol = length(scovs),
                           dimnames = list(
                             rownames(ra.1m), names(scovs)
                           ))
 
-      # ITN data by year
-      itn.df <- data.frame(YITN = YITN, ITN = as.numeric(itn.r[a]))
-      ITN <- rep(NA, nrow(scovs.mat))
-      scovs.mat <- cbind(scovs.mat, ITN)
+      # ITN, human density, human pop data by year
+      itnhum.df <- data.frame(YITN = YITN, 
+                              ITN = as.numeric(itn.r[a]),
+                              hpd = as.numeric(hpd.r[a]),
+                              pop = as.numeric(pop.r[a])
+                              )
+      pop <- hpd <- ITN <- rep(NA, nrow(scovs.mat))
+      scovs.mat <- cbind(scovs.mat, ITN, hpd, pop) 
       for (k in 1:length(years)) {
-        scovs.mat[years == YITN[k], "ITN"] <- itn.df[k, "ITN"]
+        scovs.mat[years == YITN[k], "ITN"] <- itnhum.df[k, "ITN"]
+        scovs.mat[years == YITN[k], "hpd"] <- itnhum.df[k, "hpd"]
+        scovs.mat[years == YITN[k], "pop"] <- itnhum.df[k, "pop"]
       }
 
       # relative abundance prediction data
       ra.dat <- as.data.frame(cbind(
-        scovs.mat,
+        scovs.mat[ , c("lon.centroid", "lat.centroid", "d2c", "ppw", "hpd", "elev", "ITN")],
         ra.1m
       ))
       # origin year = 2020
       ra.dat$origin.year <- 2020
+      # hpd for relative abundance
+      ra.dat$hpd <- ifelse(ra.dat$hpd < 2000, ra.dat$hpd, 2000)
       # scale
       ra.names <- colnames(ra.dat)
       for (i in ra.names) {
@@ -286,22 +280,25 @@ for (u in u.cells) {
       ra.df <- as.data.frame(ra.dat)
 
       # abundance spatial prediction data
-      a.mat <- scovs.mat[ , c("d2c", "d2r", "pop", "elev", "lat.centroid", "lon.centroid", "ITN")]
-      # relabel lat/long, itn
+      a.mat <- scovs.mat[ , c("elev", "lat.centroid", "ITN", "pop", "hpd")]
+      # relabel lat, itn 
       colnames(a.mat)[which(colnames(a.mat) == "lat.centroid")] <- "lat"
-      colnames(a.mat)[which(colnames(a.mat) == "lon.centroid")] <- "long"
       colnames(a.mat)[which(colnames(a.mat) == "ITN")] <- "itn"
-      # abs value of lat
-      a.mat[ , "lat"] <- abs(a.mat[ , "lat"])
+      # hpd for abundance
+      a.mat[ , "hpd"] <- ifelse(a.mat[ , "hpd"] < 2000, a.mat[ , "hpd"], 2000)
+      # pop for abundance
+      a.mat[ , "pop"] <- ifelse(a.mat[ , "pop"] < 50000, a.mat[ , "pop"], 50000)
       # precip for abundance
       a.mat <- cbind(a.mat, pmeans)
       colnames(a.mat)[ncol(a.mat)] <- "precip"
-      a.mat <- cbind(a.mat, tmeans)
-      colnames(a.mat)[ncol(a.mat)] <- "temp"
+      # rel humidity for abundance 
+      a.mat <- cbind(a.mat, rmeans)
+      colnames(a.mat)[ncol(a.mat)] <- "rh"
       # scale
       a.names <- colnames(a.mat)
       for (i in a.names) {
-        a.mat[ , i] <- (a.mat[ , i] - a.scaling$mins[i])/(a.scaling$maxs[i] - a.scaling$mins[i])
+        if (i != "pop")
+          a.mat[ , i] <- (a.mat[ , i] - a.scaling$mins[i])/(a.scaling$maxs[i] - a.scaling$mins[i])
       }
       # bind observations covariates
       # offset "units" is equal to one
@@ -309,7 +306,7 @@ for (u in u.cells) {
       a.df$units <- 1
 
       # predictions:
-      preds.ls <- pxPrediction(ra.df, a.df, m, ra.pars, a.mod, scovs["pop"])
+      preds.ls <- pxPrediction(ra.df, a.df, m, ra.pars, a.mod)
 
       # actual abundance
       x <- preds.ls$x
@@ -363,6 +360,8 @@ for (u in u.cells) {
 
     }
 
+    cat("cell ", a, " of u cell ", u, "\n", sep = "")
+    
     if (iter%%10 == 0)
       cat("iteration ", iter, " of ", N, ". Elapsed time: ",
           proc.time()["elapsed"] - pt, "\n", sep = "")

@@ -2,55 +2,11 @@
 # Lambert azimuthal equal area
 # see Steinwand et al. (1995)
 
-crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
-
-# check active cells for correct extent info
-all(read.csv("../covariates_spatial/active.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-# read in spatial scope of RA in projected CRS
-active <- read.csv("../covariates_spatial/active.csv", skip = 1, header = FALSE)
-all.equal(dim(active), c(1280, 1520)) # expecting same number of rows and columns for all covariate data
-active <- as.matrix(active)
 library(terra)
-# extent and crs
-active.r <- rast(active[nrow(active):1, ], crs = crs,
-                 extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-res(active.r) # 5000 5000 with skip = 1 but 5000.000 5003.909 with skip = 2 in read.csv above
-
-## read in elevation
-
-elev.r <- rast("../covariates_spatial/elev.tif")
-
-## read in remaining spatial covariate .csv files
-
-# check for correct extent info
-all(read.csv("../covariates_spatial/d2c.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/d2r.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/pop.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-
-d2c <- read.csv("../covariates_spatial/d2c.csv", skip = 1, header = FALSE)
-d2r <- read.csv("../covariates_spatial/d2r.csv", skip = 1, header = FALSE)
-pop <- read.csv("../covariates_spatial/pop.csv", skip = 1, header = FALSE)
-
-all.equal(dim(d2c), c(1280, 1520))
-all.equal(dim(d2r), c(1280, 1520))
-all.equal(dim(pop), c(1280, 1520))
-
-d2c <- as.matrix(d2c)
-d2r <- as.matrix(d2r)
-pop <- as.matrix(pop)
-
-d2c.r <- rast(d2c[nrow(d2c):1, ], crs = crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-d2r.r <- rast(d2r[nrow(d2r):1, ], crs = crs,
-              extent =  c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-pop.r <- rast(pop[nrow(pop):1, ], crs = crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-
-res(d2c.r); res(d2r.r); res(pop.r); res(elev.r)
+crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
+# read active grid
+active.r <- rast("../covariates_spatial/activeAfrica.tif")
+res(active.r) # 5000 5000 with skip = 1
 
 # meteorological covariates ----------------------------------------------------
 
@@ -133,9 +89,12 @@ for (u in u.cells) {
   met <- readRDS(paste0("../meteo_prediction_raw/met_",
                         m2crds[m2crds[ , "cell"] == u, "download.id"],
                         ".rds"))
+  
+  # prediction period is 2002--2020
+  met <- met[215:7154, ]
 
   # identify quarters and years
-  dates <- as.character(met[186:7154, "YYYYMMDD"])
+  dates <- as.character(met[ , "YYYYMMDD"])
   quart <- lubridate::quarter(dates)
   years <- lubridate::year(dates)
 
@@ -146,13 +105,9 @@ for (u in u.cells) {
 
     ## spatial covariates ------------------------------------------------------
     scovs <- c(
-      as.numeric(d2c.r[a]),
-      as.numeric(pop.r[a]),
-      as.numeric(d2r.r[a]),
-      as.numeric(elev.r[a]),
       pa.crds[a, ] # lon, lat
     )
-    names(scovs) <- c("d2c", "pop", "d2r", "elev", "lon.centroid", "lat.centroid")
+    names(scovs) <- c("lon.centroid", "lat.centroid")
 
     # warning check on lon/lat
     if (abs(scovs["lon.centroid"] - met[1, "LON"]) > 5/8)

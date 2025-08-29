@@ -1,11 +1,5 @@
-Year: 2025
-Copyright: CSIRO
-Data licenses:
-
-This file lists the copyright holders and licenses of the various dataset files
-in the AgslPredict package. The file or directory that contains the dataset
-files is named relative to the inst/ subdirectory in the top level directory
-of the source package AgslPredict.
+Copyright (c) 2025 Commonwealth Scientific and Industrial Research Organisation
+(CSIRO) ABN 41 687 119 230.
 
 The code for the AgslPredict package is released under the terms of the GNU
 General Public License, version 3 or any higher version as noted in the license
@@ -14,44 +8,24 @@ field of the DESCRIPTION file. You can obtain a copy of the GPLv3 license at
 `RShowDoc("GPL-3")` in R. The copyright notice is included in the copyright
 field of the DESCRIPTION file.
 
-# Landscan ---------------------------------------------------------------------
+This file lists the copyright holders and licenses of the various dataset files
+in the AgslPredict package. The file or directory that contains the dataset
+files is named within the inst/ top level directory of the source package
+AgslPredict. The methods for rasterisation and summarisation of data sources
+into modified data are described at <doi:10.1101/2025.03.04.641552>.
 
-These datasets are offered under the Creative Commons Attribution 4.0
-International License. Users are free to use, copy, distribute, transmit, and
-adapt the data for commercial and non-commercial purposes, without restriction,
-as long as clear attribution of the source is provided. For more information,
-please refer to the CC BY 4.0 documentation. See
-<https://creativecommons.org/licenses/by/4.0/> for details.
-
-Citation:
-
-Bright, E., Rose, A., Urban, M. LandScan Global 2015 [Data set]. Oak Ridge
-National Laboratory, 2016. URL <https://doi.org/10.48690/1524210>.
-Accessed 20 September 2022.
-
-# NASA POWER -------------------------------------------------------------------
-
-The data was obtained from the National Aeronautics and Space Administration
-(NASA) Langley Research Center (LaRC) Prediction of Worldwide Energy Resource
-(POWER) Project funded through the NASA Earth Science/Applied Science Program.
-
-These data are licensed Creative Commons Zero, see
-<https://creativecommons.org/public-domain/cc0/>. There are no restrictions on the
-use, access, and/or download of data from the NASA POWER Project. We request
-that you cite the NASA POWER Project when using the data provided from NASA
-POWER Project.
-
-Source:
-
-<https://power.larc.nasa.gov/>
 
 # naturalearth -----------------------------------------------------------------
 
-All versions of Natural Earth raster and vector map data found on this website
-are in the public domain. You may use the maps in any manner, including
-modifying the content and design, electronic dissemination, and offset printing.
-The naturalearth data are licensed PD CC, see
-https://creativecommons.org/publicdomain/
+Free vector and raster map data at <www.naturalearthdata.com>. The naturalearth
+data are licensed PD CC, see <https://creativecommons.org/publicdomain/>.
+
+Modified data based on naturalearth data appear in:
+
+inst/covariates_spatial/activeAfrica.tif
+inst/covariates_spatial/d2c.tif
+inst/covariates_spatial/elev.tif
+inst/covariates_spatial/lakesrivers.tif
 
 Source:
 
@@ -62,6 +36,10 @@ https://www.naturalearthdata.com/
 Elevation data from NOAA NCEI: license is Creative Commons Zero 1.0 Universal
 Public Domain Dedication (CC0-1.0). The CC0-1.0 license is available at
 <https://creativecommons.org/publicdomain/zero/1.0/>.
+
+Modified data based on NOAA NCEI elevation data appear in:
+
+inst/covariates_spatial/elev.tif
 
 Citation:
 
@@ -76,39 +54,47 @@ available at the Malaria Atlas Project. The license uses the Creative Commons
 Attribution 3.0 Unported License available at
 <https://creativecommons.org/licenses/by/3.0/>.
 
-Citation:
+Modified data based on Anopheles gambiae vector occurrence data appear in:
 
-Malaria Atlas Project, 2021. URL https://malariaatlas.org/. Accessed 17 December
-2021.
-
-# Vector invention maps --------------------------------------------------------
-
-The map data for insecticide treated nets and indoor residual spraying is
-available at the Malaria Atlas Project. The license uses the Creative Commons
-Attribution 3.0 Unported License available at
-<https://creativecommons.org/licenses/by/3.0/>.
+inst/covariates_spatial/activeAfrica.tif
 
 Citation:
 
-Malaria Atlas Project, 2021. URL https://malariaatlas.org/. Accessed 31 March
+Malaria Atlas Project, 2021. URL https://malariaatlas.org/. Accessed 7 July
 2025.
 
-# VectorBase.org relative abundance and abundance data -------------------------
+# Streams and rivers -----------------------------------------------------------
 
-These datasets collated by <VectorBase.org> are licensed under a Creative
-Commons CC BY license available at
+The streams and rivers data are available at:
+<https://figshare.com/articles/dataset/Global_prevalence_of_non-perennial_rivers_and_streams/14633022>
+These data are licensed under a CC BY 4.0 license available at
 <https://creativecommons.org/licenses/by/4.0/>.
+
+Modified data based on streams and rivers data appear in:
+
+inst/covariates_spatial/lakesrivers.tif
 
 Citation:
 
-Giraldo-Calderón, GI, Harb, OS, Kelly, SA, Rund, SS, Roos, DS, McDowell, MA.
-2022. VectorBase.org updates: bioinformatic resources for invertebrate vectors
-of human pathogens and related organisms. Current Opinion in Insect Science
-50:100860.
+Messager, M. L., Lehner, B., Cockburn, C., Lamouroux, N., Pella, H., Snelder,
+T., Tockner, K., Trautmann, T., Watt, C. & Datry, T. 2021. Global prevalence
+of non-perennial rivers and streams. Nature 594:391--397.
+<https://doi.org/10.1038/s41586-021-03565-5>
+Accessed: 30 June 2025
 
-VectorBase.org. 2023. Popbio Map Legacy. Release 64. Accessed: 1 April 2025.
-<https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz>
+# Lakes ------------------------------------------------------------------------
 
-VectorBase.org. 2023. Popbio Map Legacy Abundance with Zeroes. Release 64.
-Accessed: 2 April 2025.
-<https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Abundance-with-zeroes.csv.gz>
+The lakes data are available at:
+<https://figshare.com/articles/dataset/LakeATLAS_version_1_0/19312001>
+These data are licensed under a CC BY 4.0 license available at
+<https://creativecommons.org/licenses/by/4.0/>.
+
+Modified data based on lakes data appear in:
+
+inst/covariates_spatial/lakesrivers.tif
+
+Citation:
+
+Lehner, B., Messager, M.L., Korver, M.C., Linke, S. 2022. Global hydro-
+environmental lake characteristics at high spatial resolution. Scientific Data
+9: 351. <https://doi.org/10.1038/s41597-022-01425-z>

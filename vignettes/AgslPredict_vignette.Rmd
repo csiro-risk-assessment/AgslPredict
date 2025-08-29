@@ -39,11 +39,11 @@ system.file(package = "AgslPredict", "01-RelativeAbundanceData/")
 
 VectorBase identified species for many samples of *An. gambiae* sensu lato (s.l.). Samples identified by chromosomal forms were related to species: "Anopheles gambiae chromosomal form Bamako" and "Anopheles gambiae chromosomal form Savanna" was assigned to "Anopheles gambiae sensu stricto", and "Anopheles gambiae chromosomal form Mopti" was assigned to "Anopheles coluzzii". The three species retained for analysis were "Anopheles arabiensis", "Anopheles coluzzii" and "Anopheles gambiae sensu stricto".
 
-Samples initially filtered out of the database were those with no information for date of collection (1\%) or only years (1\%). Of the remainder, about 14\% were reported to the month, 53\% were reported to the day, and 23\% were reported as a duration between two dates. Of the latter, 94\% of the durations between dates were one day or less (i.e., collection during a day or overnight). The start and end date of these records were extracted. Samples reported to the level of one month were assigned start and end dates that corresponded with the start and end date of the reported month. Remaining samples with durations greater than 31 days (10\%) were filtered out of the dataset. Samples with initial dates occurring before 2001 were omitted.
+Samples outside the extent bounded by latitudes between 34S and 20N and longitudes between 20W and 52E were filtered out. Other samples initially filtered out of the database were those with no information for date of collection (1\%) or only years (1\%). Of the remainder, about 14\% were reported to the month, 52\% were reported to the day, and 23\% were reported as a duration between two dates. Of the latter, 94\% of the durations between dates were one day or less (i.e., collection during a day or overnight). The start and end date of these records were extracted. Samples reported to the level of one month were assigned start and end dates that corresponded with the start and end date of the reported month. Remaining samples with durations greater than 31 days (10\%) were filtered out of the dataset. Samples with initial dates occurring before 2001 were omitted.
 
 Samples were then identified by project ID, latitude and longitude, collection date and collection protocol to define the unit of analysis. The frequency counts of the three species identified for each unit sample were then recorded. Sample units with shared collection dates and collection methods were then aggregated to 5 km x 5 km grid cells across the spatial extent of the analysis. The grid cell file is found at 
 ```{r gc,eval=FALSE}
-system.file(package = "AgslPredict", "covariates_spatial/active.csv")
+system.file(package = "AgslPredict", "covariates_spatial/activeAfrica.tif")
 ```
 
 ## Covariate Data for Relative Abundance
@@ -98,14 +98,21 @@ system.file(package = "AgslPredict",
             "03-AbundanceData/AbundancePrep.R")
 ```
 
-This script creates afile ("03-AbundanceData/abundance.rds") that is sourced by the compilation script for meteorological covariates at
+This script creates a file ("03-AbundanceData/abundance.rds") that is sourced by the compilation script for meteorological covariates at
 
 ```{r apdat, eval = FALSE}
 system.file(package = "AgslPredict", 
             "meteo_for_abundance/meteo_abundance_download.R")
 ```
 
-The abundance data, meteorological covariate data and spatial covariates are integrated into a single dataset by the script located at
+Human population data should be downloaded and processed by scripts `demographic_process.R` found at
+
+```{r pop, eval = FALSE}
+system.file(package = "AgslPredict", 
+            "human_pop/demographic_process.R")
+```
+
+The abundance data, meteorological covariate data, human population covariates and spatial covariates are integrated into a single dataset by the script located at
 ```{r spac, eval = FALSE}
 system.file(package = "AgslPredict", 
             "03-AbundanceData/AbundanceCovarPrep.R")
@@ -118,6 +125,12 @@ The abundance analysis uses the script
 ```{r aanalysis, eval = FALSE}
 system.file(package = "AgslPredict", 
             "04-AbundanceAnalysis/agsl_negbinom.R")
+```
+
+The plot of predicted abundance with varying human population and precipitation uses the script
+```{r apredict, eval = FALSE}
+system.file(package = "AgslPredict",
+            "04-AbundanceAnalysis/predict_abundance_plot.R")
 ```
 
 # 05 Prediction
@@ -165,7 +178,7 @@ system.file(package = "AgslPredict",
 
 ## Covariate Plots
 
-Visualisations for the meteorological data are created by the preprocessing script located at
+Visualisations for the meteorological data computed by the preprocessing script on high performance located at
 ```{r metprep,eval=FALSE}
 system.file(package = "AgslPredict",
             "covar_plots/calc_metavg.R")
@@ -181,7 +194,19 @@ Plots for spatial covariates are created by the script located at
 system.file(package = "AgslPredict", "covar_plots/spatial_plots.R")
 ```
 
-The vector intervention data were downloaded from <https://malariaatlas.org/> using scripts located at
+The human population data were downloaded from <https://landscan.ornl.gov/> and processed by scripts located at
+
+```{r popdat, eval = FALSE}
+system.file(package = "AgslPredict", 
+            "human_pop/demographic_process.R")
+```
+
+Plots for the human population data are created by the scripts located at
+```{r popplots, eval= FALSE}
+system.file(package = "AgslPredict", "covar_plots/pop_plots.R")
+```
+
+The vector intervention data were downloaded from <https://malariaatlas.org/> and processed by scripts located at
 ```{r vecdat, eval=FALSE}
 system.file(package = "AgslPredict", "vector_intervention")
 ```

@@ -3,9 +3,7 @@
 # m: multinomial GLM model fit for relative abundance
 # ra.pars: multinomial parameter estimates and vcov
 # a.mod: abundance GLM model fit
-# hum.pop: avg sq km human pop
-# origin.year: default 2020 (end of observation period)
-pxPrediction <- function(raPreds, aPreds, m, ra.pars, a.mod, hum.pop) {
+pxPrediction <- function(raPreds, aPreds, m, ra.pars, a.mod) {
 
   require(nnet)
 
@@ -16,8 +14,8 @@ pxPrediction <- function(raPreds, aPreds, m, ra.pars, a.mod, hum.pop) {
 
   # data transformations for abundance predictions -----------------------------
 
-  # multiplier for q given pop.csv and grid resolution (offset)
-  human.pop <- hum.pop*25
+  # multiplier for spatio-temporal total human population in cell
+  human.pop <- aPreds$pop
 
   # total obs abundance prediction ---------------------------------------------
 

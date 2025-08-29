@@ -1,6 +1,6 @@
 # download of precip for abundance analysis
 
-# accessed 2 April 2025
+# accessed 11 July 2025
 # data are WGS84
 # https://power.larc.nasa.gov/docs/methodology/
 
@@ -34,7 +34,8 @@ query_parameters(community = "ag", par = "PRECTOTCORR", temporal_api ="daily")
 precip.locations$PRECTOTCORR <- NA
 
 pt <- proc.time()
-for (i in 1:nrow(precip.locations)) {
+start.i <- 31
+for (i in start.i:nrow(precip.locations)) {
   
   clim.rec <- get_power(
     community = "ag",

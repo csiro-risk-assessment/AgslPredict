@@ -104,7 +104,7 @@ for (i in 1:length(samps)) {
   cat(i, " out of ", length(samps), " completed ", "\n")
 }
 
-# 2% of observations have indeterminate date of sampling
+# ~3% of observations have indeterminate date of sampling
 sum(table(nchar(a.dat$Collection.date.range))[c("7", "18")])/nrow(a.dat)
 # subset to observations with defined dates
 a.dat <- a.dat[nchar(a.dat$Collection.date.range) == 10 | nchar(a.dat$Collection.date.range) == 21, ]
@@ -129,12 +129,8 @@ proj.coords <- project(v, a.crs)
 plot(active.r)
 plot(proj.coords, add = TRUE, col = 'red')
 oa <- extract(active.r, proj.coords)
-# not all observation coords correspond to an active cell
+# all observation coords correspond to an active cell
 sum(oa[ , 2] == 1) == nrow(proj.coords)
-plot(proj.coords[oa[ , 2] == 0, ], add = TRUE, col = 'green', pch = 3)
-
-unique(paste(crds(proj.coords)[oa[ , 2] == 0, 1], crds(proj.coords)[oa[ , 2] == 0, 2]))
-plot(proj.coords[oa[ , 2] == 0, ])
 
 o.cells <- cells(active.r, proj.coords)
 # convert centroid of overlaid cells to lat/long

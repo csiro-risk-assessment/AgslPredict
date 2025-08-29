@@ -1,5 +1,5 @@
 # download meterological data from NASA power API
-# downloaded 4 April 2025
+# downloaded 16 July 2025
 # version of NASA power API
 # at https://power.larc.nasa.gov/api/pages/
 # is v2.6.9
@@ -98,6 +98,7 @@ for (i in start.i:nrow(m2.crds)) {
   Sys.sleep(runif(1, 1.25, 4.75))
   flush.console()
   
+  if (i > 1) {
   iter <- 1
   while(inherits(met, "try-error") || all(as.matrix(met[1, c(1, 2)]) == as.matrix(met.old[1, c(1, 2)]))) {
  
@@ -117,6 +118,7 @@ for (i in start.i:nrow(m2.crds)) {
     )
     if (iter > 10) stop("too many tries")
     iter <- iter + 1
+  }
   }
   
   saveRDS(met, file = paste0("met_", i,".rds"))

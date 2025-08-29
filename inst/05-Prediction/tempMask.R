@@ -1,5 +1,5 @@
 # outputs:
-# for each meteorogloical cell
+# for each meteorological cell
 # predictions of avg length of durations with temperatures
 #   - 18C or below
 #   - 34C or above
@@ -12,7 +12,6 @@ library(terra)
 active.r <- rast("../covariates_spatial/activeAfrica.tif")
 same.crs(crs(active.r), crs) # TRUE
 res(active.r) 
-res(active.r) # 5000 5000 with skip = 1 but 5000.000 5003.909 with skip = 2 in read.csv above
 
 # meteorological covariates ----------------------------------------------------
 
@@ -98,10 +97,6 @@ for (u in u.cells) {
   T.OK <- metsub$T2M >= 18 & metsub$T2M <= 34
   dNOK <- filter(!T.OK, rep(1, 30), sides = 1)
 
-  # # if half years have interval of temp tol exceedance
-  # # then no pass
-  # avgT <- mean(tapply((dNOK == 30), list(metsub$YEAR), sum, na.rm = TRUE) > 0)
-  # m2.r$Ttol[u] <- avgT >= 0.50
   # if every year has at least one 30 day interval of temp tol exceedance
   # then no pass, pass threshold otherwise
   pass <- !all(tapply((dNOK == 30), list(metsub$YEAR), sum, na.rm = TRUE) > 0)

@@ -82,36 +82,12 @@ res(active.r) # 5000 5000
 # read in elevation
 elev.r <- rast("../covariates_spatial/elev.tif")
 
-# read in covariates with existing .csv files (10 August 2023)
+## read in remaining spatial covariate files ------------------------------
 
-# check for correct extent info
-all(read.csv("../covariates_spatial/d2c.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/d2r.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
-all(read.csv("../covariates_spatial/pop.csv", header = FALSE, nrow = 1) ==
-      c("#xmin=-4099134.0",	"ymin=-4202349.0", "cell_size=5000.0",	"nx=1520", "ny=1280"))
+d2c.r <- rast("../covariates_spatial/d2c.tif")
+ppw.r <- rast("../covariates_spatial/lakesrivers.tif")
 
-d2c <- read.csv("../covariates_spatial/d2c.csv", skip = 1, header = FALSE)
-d2r <- read.csv("../covariates_spatial/d2r.csv", skip = 1, header = FALSE)
-pop <- read.csv("../covariates_spatial/pop.csv", skip = 1, header = FALSE)
-
-all.equal(dim(d2c), c(1280, 1520))
-all.equal(dim(d2r), c(1280, 1520))
-all.equal(dim(pop), c(1280, 1520))
-
-d2c <- as.matrix(d2c)
-d2r <- as.matrix(d2r)
-pop <- as.matrix(pop)
-
-d2c.r <- rast(d2c[nrow(d2c):1, ], crs = a.crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-d2r.r <- rast(d2r[nrow(d2r):1, ], crs = a.crs,
-              extent =  c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-pop.r <- rast(pop[nrow(pop):1, ], crs = a.crs,
-              extent = c(-4099134.0, -4099134.0+5000*1520, -4202349.0, -4202349.0+5000*1280))
-
-res(d2c.r); res(d2r.r); res(pop.r); res(elev.r)
+res(d2c.r); res(ppw.r); res(elev.r)
 
 # assign covariate values to abundance data ------------------------------------
 
@@ -125,13 +101,11 @@ plot(active.r)
 plot(proj.coords, add = TRUE)
 
 o.d2c <- extract(d2c.r, proj.coords)
-o.d2r <- extract(d2r.r, proj.coords)
-o.pop <- extract(pop.r, proj.coords) # no missing values
-o.elev <- extract(elev.r, proj.coords) # no missing values
+o.ppw <- extract(ppw.r, proj.coords)
+o.elev <- extract(elev.r, proj.coords) 
 
 abund$d2c <- o.d2c[ , 2]
-abund$d2r <- o.d2r[ , 2]
-abund$pop <- o.pop[ , 2]
+abund$ppw <- o.ppw[ , 2]
 abund$elev <- o.elev[ , 2]
 
 # bind spatial and temporal covariates -----------------------------------------
@@ -209,6 +183,46 @@ sum(tIRS > 0.1)/length(tIRS)
 # "Proportion of population that sleeps under an Insecticide-Treated Net during a defined year 2000-2022"
 tITN <- c(tapply(abundance$ITN, list(abundance$cell), "max", na.rm = TRUE))
 sum(tITN > 0.1)/length(tITN)
+
+# human population density -----------------------------------------------------
+
+abundance$hpd <- NA
+for (y in Y) {
+  hpd <- rast(paste0("../human_pop/human_density_", y, ".tif"))
+  same.crs(active.r, hpd) # TRUE
+  o.hpd.y <- extract(hpd, proj.coords)
+  abundance$hpd[abundance$year == y] <- o.hpd.y[abundance$year == y, 2]
+}
+
+# human pop density data missing
+na.rec <- which(is.na(abundance$hpd))
+# missing values from cell 684641 in 1997 and 1998
+unique(abundance[na.rec, "cell"]); unique(abundance[na.rec, "year"])
+# assign human pop density from 2000
+hpd <- rast(paste0("../human_pop/human_density_", 2000, ".tif"))
+same.crs(active.r, hpd) # TRUE
+o.hpd.2000 <- extract(hpd, proj.coords)
+abundance[na.rec, "hpd"] <- o.hpd.2000[na.rec, 2]
+
+# human population -------------------------------------------------------------
+
+abundance$pop <- NA
+for (y in Y) {
+  pop <- rast(paste0("../human_pop/human_pop_", y, ".tif"))
+  same.crs(active.r, pop) # TRUE
+  o.pop.y <- extract(pop, proj.coords)
+  abundance$pop[abundance$year == y] <- o.pop.y[abundance$year == y, 2]
+}
+
+# human pop data missing
+na.rec <- which(is.na(abundance$pop))
+# missing values from cell 684641 in 1997 and 1998
+unique(abundance[na.rec, "cell"]); unique(abundance[na.rec, "year"])
+# assign human pop from 2000
+pop <- rast(paste0("../human_pop/human_pop_", 2000, ".tif"))
+same.crs(active.r, pop) # TRUE
+o.pop.2000 <- extract(pop, proj.coords)
+abundance[na.rec, "pop"] <- o.pop.2000[na.rec, 2]
 
 # save abundance file ----------------------------------------------------------
 

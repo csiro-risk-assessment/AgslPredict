@@ -2,6 +2,20 @@
 # using results from prediction_plots.R
 results.nu <- readRDS("resultsNU.rds")
 
+## subset to Burkina Faso ------------------------------------------------------
+library(terra)
+coords <- results.nu[ , c("lon", "lat")]
+v <- vect(coords, crs = "epsg:4326")
+
+### read in countries ----------------------------------------------------------
+library(sf)
+library(rnaturalearth)
+
+BF <- ne_countries(country = "Burkina Faso", scale = 'medium', returnclass = 'sv')
+o.bf <- extract(BF, v)
+
+results.nu <- results.nu[!is.na(o.bf["name_en"]), ]
+
 # grand mean
 xbar <- colMeans(results.nu[ , c("Aa_mean", "Ac_mean", "Ag_mean")], na.rm = TRUE)
 names(xbar) <- c("Aa", "Ac", "Ag")
@@ -174,12 +188,12 @@ for (i in 1:ncol(tern.xy)) {
 }
 
 png("srtPianka.png", width = 480*1, height = 480,
-    pointsize = 24)
+    pointsize = 22)
 par(mar = rep(0.2, 4))
 
 TernaryPlot(alab = expression(paste("Percentage of  ", italic(An.~arabiensis))),
             blab = expression(paste("Percentage of  ", italic(An.~coluzzii))),
-            clab = expression(paste("Percentage of  ", italic(An.~gambiae), "  s.s.")))
+            clab = expression(paste("Percentage of  ", italic(An.~gambiae~s.s.))))
 mapP <- rbind(x = tri["x", ], y = tri["y", ], z = vP,
                 down = tri["triDown", ])
 ColourTernary(mapP, spectrum = viridisLite::viridis(256L, alpha = 0.6))
@@ -324,12 +338,12 @@ for (i in 1:ncol(tern.xy)) {
 }
 
 png("specOptim.png", width = 480*1, height = 480,
-    pointsize = 24)
+    pointsize = 22)
 par(mar = rep(0.2, 4))
 
 TernaryPlot(alab = expression(paste("Percentage of  ", italic(An.~arabiensis))),
             blab = expression(paste("Percentage of  ", italic(An.~coluzzii))),
-            clab = expression(paste("Percentage of  ", italic(An.~gambiae), "  s.s.")))
+            clab = expression(paste("Percentage of  ", italic(An.~gambiae~s.s.))))
 mapOpt <- rbind(x = tri["x", ], y = tri["y", ], z = (vOpt),
              down = tri["triDown", ])
 ColourTernary(mapOpt, spectrum = viridisLite::viridis(256L, alpha = 0.6))

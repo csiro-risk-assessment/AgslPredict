@@ -1,0 +1,14 @@
+% latex table generated in R 4.4.2 by xtable 1.8-4 package
+% Mon Aug 18 08:16:00 2025
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & 2002 & 2020 \\ 
+  \hline
+0.1 & 0.0 & 0.0 \\ 
+  0.5 & 173.2 & 53.6 \\ 
+  0.9 & 353.1 & 114.0 \\ 
+   \hline
+\end{tabular}
+\end{table}

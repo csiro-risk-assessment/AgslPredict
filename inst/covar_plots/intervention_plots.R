@@ -1,49 +1,44 @@
-## ITN and IRS plots for years 2002, 2008, 2014 and 2020
+# This script reads the TIFF files of ITN and IRS for years
+# 2002, 2008, 2014 and 2020, plots the maps corresponding to ITN and IRS on
+# two different 2 by 2 layouts and saves the plots in the files
+# Yearly_ITN.png and Yearly_IRS.png
 
-ITN2002 <- rast("//fs1-cbr.nexus.csiro.au/{d61-pmb-publications}/work/AgslDistribution/AgslPredict_instantiation/AgslPredict_instantiated_202504/vector_intervention/ITN_2002.tif")
-ITN2008 <- rast("//fs1-cbr.nexus.csiro.au/{d61-pmb-publications}/work/AgslDistribution/AgslPredict_instantiation/AgslPredict_instantiated_202504/vector_intervention/ITN_2008.tif")
-ITN2014 <- rast("//fs1-cbr.nexus.csiro.au/{d61-pmb-publications}/work/AgslDistribution/AgslPredict_instantiation/AgslPredict_instantiated_202504/vector_intervention/ITN_2014.tif")
-ITN2020 <- rast("//fs1-cbr.nexus.csiro.au/{d61-pmb-publications}/work/AgslDistribution/AgslPredict_instantiation/AgslPredict_instantiated_202504/vector_intervention/ITN_2020.tif")
+library(terra)
+library(rnaturalearth)
+
+# shoreline from rnaturalearth
+shore <- ne_coastline(scale = "medium", returnclass = "sv")
+crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" # EPSG:42106
+
+# read active grid
+active.r <- rast("../covariates_spatial/activeAfrica.tif")
+res(active.r)
+
+# raster layers
+intervention.r <- rast(active.r,
+              nlyrs = 8,
+              names = c(
+                paste0(rep(c("ITN", "IRS"), each = 4),
+                       c(paste0("_", seq(2002, 2020, 6))))
+              )
+)
+
+intervention.dir <- "../vector_intervention/"
+years = seq(2002, 2020, 6)
+
+for (year in years)
+{
+  intervention.r[[paste0("ITN_",year)]] <- rast(paste0(intervention.dir, "ITN_", year, ".tif"))
+  intervention.r[[paste0("IRS_",year)]] <- rast(paste0(intervention.dir, "IRS_", year, ".tif"))
+}
 
 # projection to WGS84
-ITN2002 <- project(ITN2002, "epsg:4326")
-ITN2008 <- project(ITN2008, "epsg:4326")
-ITN2014 <- project(ITN2014, "epsg:4326")
-ITN2020 <- project(ITN2020, "epsg:4326")
-
-ITN.list <- rast(ITN2002, nlyrs = 4, names = paste0("ITN_",c("2002","2008","2014","2020"),"_use_mean"))
-ITN.list[[1]] <- ITN2002
-ITN.list[[2]] <- ITN2008
-ITN.list[[3]] <- ITN2014
-ITN.list[[4]] <- ITN2020
-
-IRS2002 <- rast("//fs1-cbr.nexus.csiro.au/{d61-pmb-publications}/work/AgslDistribution/AgslPredict_instantiation/AgslPredict_instantiated_202504/vector_intervention/IRS_2002.tif")
-IRS2008 <- rast("//fs1-cbr.nexus.csiro.au/{d61-pmb-publications}/work/AgslDistribution/AgslPredict_instantiation/AgslPredict_instantiated_202504/vector_intervention/IRS_2008.tif")
-IRS2014 <- rast("//fs1-cbr.nexus.csiro.au/{d61-pmb-publications}/work/AgslDistribution/AgslPredict_instantiation/AgslPredict_instantiated_202504/vector_intervention/IRS_2014.tif")
-IRS2020 <- rast("//fs1-cbr.nexus.csiro.au/{d61-pmb-publications}/work/AgslDistribution/AgslPredict_instantiation/AgslPredict_instantiated_202504/vector_intervention/IRS_2020.tif")
-
-# projection to WGS84
-IRS2002 <- project(IRS2002, "epsg:4326")
-IRS2008 <- project(IRS2008, "epsg:4326")
-IRS2014 <- project(IRS2014, "epsg:4326")
-IRS2020 <- project(IRS2020, "epsg:4326")
-
-IRS.list <- rast(IRS2002, nlyrs = 4, names = paste0("IRS_",c("2002","2008","2014","2020"),"_use_mean"))
-IRS.list[[1]] <- IRS2002
-IRS.list[[2]] <- IRS2008
-IRS.list[[3]] <- IRS2014
-IRS.list[[4]] <- IRS2020
+intervention.r <- project(intervention.r, "epsg:4326")
 
 # plots ------------------------------------------------------------------------
-
 library(rasterVis)
-
-RColorBrewer::display.brewer.all(n=7, type="seq", select=NULL, exact.n=TRUE,
-                                                     colorblindFriendly=TRUE)
-RColorBrewer::display.brewer.all(n=7, type="div", select=NULL, exact.n=TRUE,
-                                 colorblindFriendly=TRUE)
-
-## annual ----------------------------------------------------------------------
+library(marmap)
+library(latticeExtra)
 
 cols <- rev(c(RColorBrewer::brewer.pal(9, "GnBu")[9:1]))
 ann.theme.itn <- rasterTheme(
@@ -58,26 +53,24 @@ ann.theme.irs <- rasterTheme(
                       bottom.padding = -2)
 )
 
-library(marmap)
-
-png("Yearly_ITN.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
-levelplot(ITN.list[[1:4]],
+png("Yearly_ITN.png", 2.5*480*3, 2.5*480*3*(0.8), pointsize = 72, res = 6*72)
+levelplot(intervention.r[[c("ITN_2002","ITN_2008","ITN_2014","ITN_2020")]],
           main = expression("ITN use mean"),
           names.attr = paste0("Year ", c("2002","2008","2014","2020")),
           layout = c(2, 2),
           par.settings = ann.theme.itn
-)
+)  + layer(llines(shore, col = "black"))
 dev.off()
 
 
 
 
-png("Yearly_IRS.png", 2.5*480, 2.5*480*(0.8), pointsize = 72)
-levelplot(IRS.list[[1:4]],
-          main = expression("IRS use mean"),
+png("Yearly_IRS.png", 2.5*480*3, 2.5*480*3*(0.8), pointsize = 72, res = 6*72)
+levelplot(intervention.r[[c("IRS_2002", "IRS_2008", "IRS_2014", "IRS_2020")]],
+          main = expression("IRS use mean"), cex = 2,
           names.attr = paste0("Year ", c("2002","2008","2014","2020")),
           layout = c(2, 2),
           par.settings = ann.theme.irs
-)
+) + layer(llines(shore, col = "black"))
 dev.off()
 

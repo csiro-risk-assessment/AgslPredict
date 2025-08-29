@@ -1,6 +1,6 @@
 # download of precipitations and temperature for relative abundance
 
-# accessed 01/04/2025
+# accessed 11/07/2025
 # data are WGS84
 # https://power.larc.nasa.gov/docs/methodology/
 
@@ -36,7 +36,8 @@ library(nasapower)
 meteo.locations$PRECTOTCORR <- NA
 
 pt <- proc.time()
-for (i in 1:nrow(meteo.locations))
+start.i <- 1
+for (i in start.i:nrow(meteo.locations))
 {
   # we are reading up to one year in the past for each day
   # in case we need to do a moving average over the last year

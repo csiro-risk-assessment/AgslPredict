@@ -18,7 +18,13 @@ colnames(dat) <- gsub(" ", ".", col.names)
 
 # species identification -------------------------------------------------------
 
-# account for chormosomal forms
+# Project VBP0000684 lists Species as "Anopheles gambiae sensu stricto" but this
+# is in error as original publication reports that "Anopheles arabiensis" was
+# the only An. gambiae s.l. species to be identified
+# see: DOI:10.1186/1475-2875-12-350
+dat[dat$Projects == "VBP0000684", "Species"] <- "Anopheles arabiensis"
+
+# account for chromosomal forms
 dat$sp <- dat$Species
 dat$sp <- ifelse(dat$sp == "Anopheles gambiae chromosomal form Bamako",
                  "Anopheles gambiae sensu stricto",

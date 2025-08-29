@@ -78,30 +78,25 @@ for (i in 1:length(collectionCodes)) {
 # q submodel ----------------------------------------------
 
 # design matrix
-# log1p population
-# log1p d2r
-# log1p elev
+# population density covariate thresholded at 2000/km^2
+#   - 2K/km^2 --> at least 50000 total population in 25 km^2 cell
+#   - total population over 50K in contiguous 1 km^2 cells of greater than 
+#     1500/km^2 density is high density urban area (World Bank 2020)
+# elev
 # abs lat
-# long
-# daily precip, temp, RH
+# daily precip, relative humidity
 # ITN
-# collection method
-
 qMat <- cbind(
-  dat$d2c,
-  dat$d2r,
-  dat$pop,
+  ifelse(dat$hpd < 2000, dat$hpd, 2000), 
   dat$elev,
   abs(dat$lat.centroid),
-  dat$lon.centroid,
   rowMeans(dat[ , grepl("p_lag", names(dat))]),
-  rowMeans(dat[ , grepl("t_lag", names(dat))]),
   rowMeans(dat[ , grepl("r_lag", names(dat))]),
   dat$ITN
 )
 colnames(qMat) <- c(
-  "d2c", "d2r", "pop", "elev", "lat", "long",
-  "precip", "temp", "rh", 
+  "hpd", "elev", "lat", 
+  "precip", "rh",
   "itn"
 )
 
@@ -122,9 +117,7 @@ X <- cbind(
 )
 colnames(X) <- c(
   colnames(collectMatAgsl),
-  "d2c", "d2r", "pop", "elev", "lat", "long",
-  "precip", "temp", "rh",
-  "itn"
+  colnames(sMat)
 )
 
 df <- as.data.frame(cbind(
@@ -132,45 +125,56 @@ df <- as.data.frame(cbind(
   X
 ))
 
-# linear predictor
-# precipitation: quadratic, interactions with all non obs process vars
-# d2r: interaction with terrain covars: d2c and elev
-
-# Poisson
-fit.p <- glm(Agsl ~ light + exit + PSC + animal + pit + outdoor +
-                       precip + I(precip^2) +
-                       precip:lat + precip:elev +
-                       precip:temp +
-                       pop +
-                       itn +
-                       offset(log(units)),
-                      family = poisson,
-                      # method = "glm.fit2", # glm2 overwrite
-                      maxit = 100,
-                      data = df)
-fit.p$converged
-
 # Negative binomial with optimised theta
 library(glm2)
 
-# pop
-fit.model <- MASS::glm.nb(Agsl ~ light + exit + PSC + animal + pit + outdoor +
+fit.init <- MASS::glm.nb(Agsl ~ light + exit + PSC + animal + pit + outdoor +
                             precip + I(precip^2) +
-                            precip:lat + precip:elev +
-                            precip:temp +
-                            pop +
+                            rh + 
+                            precip:rh +
+                            precip:hpd +
+                            hpd:rh +
+                            hpd + I(hpd^2) +
                             itn +
                             offset(log(units)),
                           method = "glm.fit2",
+                          maxit = 1000,
                           data = df)
+fit.stp <- MASS::stepAIC(fit.init,
+                         scope = list(
+                           upper = ~ light + exit + PSC + animal + pit + outdoor +
+                             precip + I(precip^2) +
+                             rh + 
+                             precip:rh +
+                             precip:hpd +
+                             hpd:rh +
+                             hpd + I(hpd^2) +
+                             itn +
+                             offset(log(units)),
+                           lower = ~ light + exit + PSC + animal + pit + outdoor +
+                             precip + I(precip^2) +
+                             rh + 
+                             hpd + I(hpd^2) +
+                             itn +
+                             offset(log(units))),
+                         direction = "backward", k = log(nrow(df))
+)
+BIC(fit.init, fit.stp)
+
+fit.model <- MASS::glm.nb(Agsl ~ light + exit + PSC + animal + pit + outdoor + precip + 
+                                    I(precip^2) + rh + hpd + I(hpd^2) + itn + precip:hpd + rh:hpd + 
+                                    offset(log(units)),                           
+                                    method = "glm.fit2",
+                                    maxit = 1000,
+                                    data = df)
+all.equal(formula(fit.model), formula(fit.stp))
 fit.model$converged
 summary(fit.model)
-curve(exp(coef(fit.model)[1] + coef(fit.model)["precip"]*x + coef(fit.model)["I(precip^2)"]*x^2)*x*1500)
-curve(exp(coef(fit.model)[1] + coef(fit.model)["pop"]*x)*x*1500)
+BIC(fit.model)
 
 ## evaluation of overdispersed model fit ---------------------------------------
 
-BIC(fit.p, fit.model) # fitted theta = 0.25 neg bin substantially improves BIC
+BIC(fit.p, fit.model) # fitted theta neg bin substantially improves BIC
 theta.est <- fit.model$theta
 
 ## overdispersed model summary -------------------------------------------------
