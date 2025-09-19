@@ -85,6 +85,7 @@ all.equal(formula(m1U.stp), formula(ra.model))
 # coefficients
 raEst <- cbind(t(summary(ra.model)$coefficients), t(summary(ra.model)$standard.errors))
 colnames(raEst) <- c("coeffAcVsAa", "coeffAgVsAa", "seAcVsAa", "seAgVsAa")
+raEst <- raEst[ , c("coeffAcVsAa", "seAcVsAa", "coeffAgVsAa", "seAgVsAa")]
 write.csv(raEst, file = "MultinomialModelEstimates1m.csv")
 
 relABtab <- xtable::xtable(
