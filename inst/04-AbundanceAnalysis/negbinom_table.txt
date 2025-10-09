@@ -36,9 +36,9 @@ precip:hpd     & $-5.40^{***}$ \\
 rh:hpd         & $8.19^{***}$  \\
                & $(0.65)$      \\
 \hline
-AIC            & $59071.72$    \\
-BIC            & $59185.59$    \\
-Log Likelihood & $-29519.86$   \\
+AIC            & $59071.67$    \\
+BIC            & $59185.53$    \\
+Log Likelihood & $-29519.83$   \\
 Deviance       & $9644.30$     \\
 Num. obs.      & $9105$        \\
 \hline

@@ -186,7 +186,7 @@ png("annual_avg.png", 2.5*480*3, 2.5*480*(1/3)*3, res = 3*72)
 par(mar = rep(0.1, 4), oma = rep(1, 4))
 levelplot(res.r[[c("Aa_mean", "Ac_mean", "Ag_mean")]],
           maxpixels = 2.3e6,
-          main = "Annual average abundance",
+          main = "Average daily abundance",
           names.attr = c(
             expression(italic("An. arabiensis")),
             expression(italic("An. coluzzii")),
@@ -218,7 +218,7 @@ quart.theme <- rasterTheme(
 png("Q_Aa.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Aa_Q1", "Aa_Q2", "Aa_Q3", "Aa_Q4")]],
           maxpixel = 2.3e6,
-          main = expression(paste("Quarterly average abundance: ",
+          main = expression(paste("Average daily abundance by quarter: ",
                                   italic("An. arabiensis"))),
           names.attr = paste0("Q", 1:4),
           layout = c(2, 2),
@@ -236,7 +236,7 @@ dev.off()
 png("Q_Ac.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Ac_Q1", "Ac_Q2", "Ac_Q3", "Ac_Q4")]],
           maxpixel = 2.3e6,
-          main = expression(paste("Quarterly average abundance: ",
+          main = expression(paste("Average daily abundance by quarter: ",
                                   italic("An. coluzzii"))),
           names.attr = paste0("Q", 1:4),
           layout = c(2, 2),
@@ -254,7 +254,7 @@ dev.off()
 png("Q_Ag.png", 2.5*480*3, 2.5*480*(0.8)*3, pointsize = 72, res = 3*72)
 levelplot(res.r[[c("Ag_Q1", "Ag_Q2", "Ag_Q3", "Ag_Q4")]],
           maxpixel = 2.3e6,
-          main = expression(paste("Quarterly average abundance: ",
+          main = expression(paste("Average daily abundance by quarter: ",
                                   italic("An. gambiae s.s."))),
           names.attr = paste0("Q", 1:4),
           layout = c(2, 2),
@@ -394,17 +394,11 @@ dev.off()
 
 png("tot_abundance.png", sqrt(0.5)*2*480*3, sqrt(0.5)*2*480*3, res = 3*72)
 par(mar = rep(0.1, 4), oma = rep(1, 4))
-levelplot(log(res.r[["tot_mean"]]),
+levelplot(res.r[["tot_mean"]],
           maxpixel = 2.3e6,
           main = "Predicted per person average abundance",
           margin = FALSE,
-          zscaleLog = FALSE,
-          colorkey = list(at = log(seq(1, 32, 0.5)),
-                        labels = list(
-                          at = log(c(1, 2, 4, 8, 16, 32)),
-                          labels = c(1, 2, 4, 8, 16, 32)
-                          )
-          )
+          zscaleLog = TRUE
 ) + layer(llines(shore, col = "black"))
 dev.off()
 

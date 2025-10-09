@@ -1,12 +1,12 @@
 % latex table generated in R 4.4.2 by xtable 1.8-4 package
-% Mon Aug 18 08:33:16 2025
+% Wed Oct  8 10:24:27 2025
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrrr}
   \hline
  & AaAc & AaAg & AcAg \\ 
   \hline
-Pianka & 0.94 & 0.43 & 0.51 \\ 
+Pianka & 0.94 & 0.42 & 0.51 \\ 
   Optimised & 0.23 & 0.32 & 0.32 \\ 
    \hline
 \end{tabular}

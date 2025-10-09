@@ -1,8 +1,8 @@
 Package: AgslPredict
 Type: Package
-Date: 2025-09-19
+Date: 2025-10-10
 Title: Code and data for predictions of Anopheles gambiae sensu lato
-Version: 0.6.0
+Version: 1.0.0
 Authors@R: c(person(c("Geoffrey", "R."), "Hosack", email = 
   "geoff.hosack@csiro.au", role = c("aut", "cre"), comment = 
   c(ORCID = "0000-0002-6462-6817")),
@@ -38,7 +38,8 @@ Suggests:
   knitr,
   rmarkdown
 License: GPL-3 + file LICENSE
-URL: https://github.com/csiro-risk-assessment/AgslPredict
+URL: https://github.com/csiro-risk-assessment/AgslPredict,
+  https://doi.org/10.5281/zenodo.15421024
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr

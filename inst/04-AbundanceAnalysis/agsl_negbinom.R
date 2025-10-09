@@ -172,9 +172,6 @@ fit.model$converged
 summary(fit.model)
 BIC(fit.model)
 
-## evaluation of overdispersed model fit ---------------------------------------
-
-BIC(fit.p, fit.model) # fitted theta neg bin substantially improves BIC
 theta.est <- fit.model$theta
 
 ## overdispersed model summary -------------------------------------------------

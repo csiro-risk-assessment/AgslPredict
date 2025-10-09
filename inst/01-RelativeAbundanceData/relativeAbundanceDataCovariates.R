@@ -124,8 +124,8 @@ plot(hpd, xlim = c(-1e5, 1e5) + pt[1, "x"], ylim = c(-1e5, 1e5) + pt[1, "y"])
 plot(proj.coords[ra$cell == 1402901, ], add = TRUE, col = 'red') # coastal ocean
 # assign nearest coastal density
 points(3203366 - 5000*2.75, -2414849 + 3500, col = 'cyan')
-extract(hpd, matrix(c(3203366 - 5000*2.75, -2414849 + 3500), nrow = 1), cells = TRUE)
-ra[ra$cell == 1402901, "hpd"] <- 11.69416
+extract(hpd, matrix(c(3203366 - 5000*2.75, -2414849 + 2000), nrow = 1), cells = TRUE)
+ra[ra$cell == 1402901, "hpd"] <- 11.531
 
 # meteorological covariates ----------------------------------------------------
 
