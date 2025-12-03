@@ -24,5 +24,5 @@ To cite this package use:
 
   Hosack GR, El-Hachem M, Ickowicz A, Beeton NJ, Wilkins A, Hayes KR, Rund SSC, 
   Kelly SA, MacDowell MA (2025). “Prediction of mosquito vector abundance for 
-  three species in the _Anopheles gambiae_ complex.” _Parasites Vectors_ 18, 
+  three species in the _Anopheles gambiae_ complex.” _Parasites and Vectors_ 18, 
   497. <https://doi.org/10.1186/s13071-025-07070-w>.
