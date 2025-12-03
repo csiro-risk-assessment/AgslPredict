@@ -17,5 +17,7 @@ bibentry(
   title   = "Prediction of mosquito vector abundance for three species in the
   Anopheles gambiae complex",
   year    = "2025",
-  url     = "https://doi.org/10.1101/2025.03.04.641552"
+  volume  = {18},
+  pages   = {497},
+  url     = "https://doi.org/10.1186/s13071-025-07070-w"
 )

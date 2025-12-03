@@ -11,7 +11,6 @@
 
 <meta name="author" content="Geoffrey R. Hosack and Maud El-Hachem" />
 
-<meta name="date" content="2025-04-08" />
 
 <title>Vignette for AgslPredict</title>
 
@@ -352,7 +351,6 @@ display: none;
 
 <h1 class="title toc-ignore">Vignette for AgslPredict</h1>
 <h4 class="author">Geoffrey R. Hosack and Maud El-Hachem</h4>
-<h4 class="date">2025-04-08</h4>
 
 </div>
 
@@ -366,7 +364,7 @@ display: none;
 <p>This vignette documents the code and data provided by package
 <strong>AgslPredict</strong> as supplementary material for the paper
 ``Prediction of mosquito vector abundance for three species in the
-Anopheles gambiae complex’’, <a href="https://doi.org/10.1101/2025.03.04.641552" class="uri">https://doi.org/10.1101/2025.03.04.641552</a>. The
+<em>Anopheles gambiae</em> complex’’, <a href="https://doi.org/10.1186/s13071-025-07070-w" class="uri">https://doi.org/10.1186/s13071-025-07070-w</a>. The
 underlying response data requires multiple downloads and some of the
 analyses were implemented on advanced computing facilities. The scripts
 and previously downloaded data are therefore stored in top level
@@ -421,7 +419,7 @@ The frequency counts of the three species identified for each unit
 sample were then recorded. Sample units with shared collection dates and
 collection methods were then aggregated to 5 km x 5 km grid cells across
 the spatial extent of the analysis. The grid cell file is found at</p>
-<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covariates_spatial/active.csv&quot;)</code></pre>
+<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covariates_spatial/activeAfrica.tif&quot;)</code></pre>
 <div id="covariate-data-for-relative-abundance" class="section level2">
 <h2>Covariate Data for Relative Abundance</h2>
 <p>The relative abundance data incorporates meteorological information
@@ -463,13 +461,17 @@ survey year and observed data by species.</p>
 analysis is located at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, 
             &quot;03-AbundanceData/AbundancePrep.R&quot;)</code></pre>
-<p>This script creates afile (“03-AbundanceData/abundance.rds”) that is
+<p>This script creates a file (“03-AbundanceData/abundance.rds”) that is
 sourced by the compilation script for meteorological covariates at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, 
             &quot;meteo_for_abundance/meteo_abundance_download.R&quot;)</code></pre>
-<p>The abundance data, meteorological covariate data and spatial
-covariates are integrated into a single dataset by the script located
-at</p>
+<p>Human population data should be downloaded and processed by scripts
+<code>demographic_process.R</code> found at</p>
+<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, 
+            &quot;human_pop/demographic_process.R&quot;)</code></pre>
+<p>The abundance data, meteorological covariate data, human population
+covariates and spatial covariates are integrated into a single dataset
+by the script located at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, 
             &quot;03-AbundanceData/AbundanceCovarPrep.R&quot;)</code></pre>
 </div>
@@ -478,6 +480,10 @@ at</p>
 <p>The abundance analysis uses the script</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, 
             &quot;04-AbundanceAnalysis/agsl_negbinom.R&quot;)</code></pre>
+<p>The plot of predicted abundance with varying human population and
+precipitation uses the script</p>
+<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;,
+            &quot;04-AbundanceAnalysis/predict_abundance_plot.R&quot;)</code></pre>
 </div>
 <div id="prediction" class="section level1">
 <h1>05 Prediction</h1>
@@ -514,8 +520,8 @@ predictions at</p>
 </div>
 <div id="covariate-plots" class="section level2">
 <h2>Covariate Plots</h2>
-<p>Visualisations for the meteorological data are created by the
-preprocessing script located at</p>
+<p>Visualisations for the meteorological data computed by the
+preprocessing script on high performance located at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;,
             &quot;covar_plots/calc_metavg.R&quot;)</code></pre>
 <p>Summary plots of the meteorological data are created by the
@@ -523,7 +529,15 @@ script</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covar_plots/met_plots.R&quot;)</code></pre>
 <p>Plots for spatial covariates are created by the script located at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covar_plots/spatial_plots.R&quot;)</code></pre>
-<p>The vector intervention data were downloaded from <a href="https://malariaatlas.org/" class="uri">https://malariaatlas.org/</a> using scripts located at</p>
+<p>The human population data were downloaded from <a href="https://landscan.ornl.gov/" class="uri">https://landscan.ornl.gov/</a> and processed by scripts
+located at</p>
+<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, 
+            &quot;human_pop/demographic_process.R&quot;)</code></pre>
+<p>Plots for the human population data are created by the scripts
+located at</p>
+<pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;covar_plots/pop_plots.R&quot;)</code></pre>
+<p>The vector intervention data were downloaded from <a href="https://malariaatlas.org/" class="uri">https://malariaatlas.org/</a> and processed by scripts
+located at</p>
 <pre class="r"><code>system.file(package = &quot;AgslPredict&quot;, &quot;vector_intervention&quot;)</code></pre>
 <p>Plots for the vector intervention data are created by the scripts
 located at</p>

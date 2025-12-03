@@ -1,7 +1,6 @@
 ---
 title: "Vignette for AgslPredict"
 author: "Geoffrey R. Hosack and Maud El-Hachem"
-date: "2025-04-08"
 ---
 
 <!--
@@ -20,7 +19,7 @@ knitr::opts_chunk$set(
 
 # Outline
 
-This vignette documents the code and data provided by package **AgslPredict** as supplementary material for the paper ``Prediction of mosquito vector abundance for three species in the Anopheles gambiae complex'', <https://doi.org/10.1101/2025.03.04.641552>. The underlying response data requires multiple downloads and some of the analyses were implemented on advanced computing facilities. The scripts and previously downloaded data are therefore stored in top level directories of this package, which are referenced in this vignette. The scripts refer to files in the different directories to build dataframes and execute analysis that may use high performance computing facilities.
+This vignette documents the code and data provided by package **AgslPredict** as supplementary material for the paper ``Prediction of mosquito vector abundance for three species in the *Anopheles gambiae* complex'', <https://doi.org/10.1186/s13071-025-07070-w>. The underlying response data requires multiple downloads and some of the analyses were implemented on advanced computing facilities. The scripts and previously downloaded data are therefore stored in top level directories of this package, which are referenced in this vignette. The scripts refer to files in the different directories to build dataframes and execute analysis that may use high performance computing facilities.
 
 * [01 Relative Abundance Data] 
 * [02 Relative Abundance Analysis] 

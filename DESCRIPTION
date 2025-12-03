@@ -13,7 +13,7 @@ Copyright: Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 Description: Supporting code for estimation, prediction and stability analysis
   for the three primary vectors of Anopheles gambiae sensu lato. See Hosack et 
   al. (2025) "Prediction of mosquito vector abundance for three species in the 
-  Anopheles gambiae complex", bioRxiv, <doi:10.1101/2025.03.04.641552>.
+  Anopheles gambiae complex", <https://doi.org/10.1186/s13071-025-07070-w>.
 Imports:
   data.table,
   dplyr,

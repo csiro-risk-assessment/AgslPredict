@@ -12,7 +12,8 @@ This file lists the copyright holders and licenses of the various dataset files
 in the AgslPredict package. The file or directory that contains the dataset
 files is named within the inst/ top level directory of the source package
 AgslPredict. The methods for rasterisation and summarisation of data sources
-into modified data are described at <doi:10.1101/2025.03.04.641552>.
+into modified data are described at:
+<https://doi.org/10.1186/s13071-025-07070-w>.
 
 
 # naturalearth -----------------------------------------------------------------
