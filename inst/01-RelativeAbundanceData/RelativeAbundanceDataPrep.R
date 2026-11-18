@@ -2,7 +2,7 @@ library(dplyr)
 
 # download and import data -----------------------------------------------------
 #raw.dir <- "./"
-download.file("https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz",
+download.file("https://vectorbase.org/common/downloads/LegacyVectorBase/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Samples.csv.gz",
               destfile = "VectorBase-popbio-map-rel64-July2023-Samples.csv.gz")
 # check download
 file.exists("VectorBase-popbio-map-rel64-July2023-Samples.csv.gz")
@@ -173,7 +173,7 @@ legend("bottomleft", pch = c(1, 3, 4), col = c('black', 'blue', "green"),
 # collate to grid
 library(terra)
 active.r <- rast("../covariates_spatial/activeAfrica.tif")
-a.crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" 
+a.crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84"
 same.crs(crs(active.r), a.crs) # TRUE
 a.crs <- crs(active.r)
 

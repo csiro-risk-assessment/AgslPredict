@@ -17,9 +17,9 @@ for information on data licenses.
 
 To cite this package use:
 
-  Hosack GR, El-Hachem M (2025). _AgslPredict: Code and data for predictions of 
-  Anopheles gambiae sensu lato_. R package version 1.0.0,
-  <https://doi.org/10.5281/zenodo.15421024>. Available from:
+  Hosack GR, El-Hachem M (2026). _AgslPredict: Code and data for predictions of 
+  Anopheles gambiae sensu lato_. R package version 1.0.1, 
+  <https://doi.org/10.5281/zenodo.15421024>, 
   <https://github.com/csiro-risk-assessment/AgslPredict>.
 
   Hosack GR, El-Hachem M, Ickowicz A, Beeton NJ, Wilkins A, Hayes KR, Rund SSC, 

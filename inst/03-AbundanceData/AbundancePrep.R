@@ -6,7 +6,7 @@
 # increase timeout for internet download
 options(timeout = max(1200, getOption("timeout")))
 
-download.file("https://vectorbase.org/common/downloads/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Abundance-with-zeroes.csv.gz",
+download.file("https://vectorbase.org/common/downloads/LegacyVectorBase/popbio-map-legacy/VectorBase-popbio-map-rel64-July2023-Abundance-with-zeroes.csv.gz",
               destfile = "VectorBase-popbio-map-rel64-July2023-Abundance-with-zeroes.csv.gz")
 
 # check download
@@ -26,10 +26,10 @@ colnames(dat) <- gsub("\\)", ".", col.names)
 
 # subset abundance data to bounding box ----------------------------------------
 
-# read in spatial scope of RA 
+# read in spatial scope of RA
 library(terra)
 active.r <- rast("../covariates_spatial/activeAfrica.tif")
-a.crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84" 
+a.crs <- "+proj=laea +lat_0=5 +lon_0=20 +x_0=0 +y_0=0 +units=m +ellps=WGS84 +datum=WGS84"
 same.crs(crs(active.r), a.crs) # TRUE
 a.crs <- crs(active.r)
 
@@ -153,8 +153,8 @@ unique(a.dat[lubridate::year(lubridate::date(a.dat$Collection.date.range)) < 200
 # VBA2882243
 # DOI:10.1186/1471-2334-12-275,DOI:10.1186/1756-3305-6-10
 # cell: 684641
-points(a.dat$lon.centroid[a.dat$cell == 684641], 
-       a.dat$lat.centroid[a.dat$cell == 684641], 
+points(a.dat$lon.centroid[a.dat$cell == 684641],
+       a.dat$lat.centroid[a.dat$cell == 684641],
        pch = 19, col = 'blue')
 
 # this is city of Mbandjock with ITN intervention: Antonio-Nkondjio et al. (2013)

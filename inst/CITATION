@@ -13,11 +13,10 @@ bibentry(
   person(c("Samuel", "S.", "C."), "Rund"),
   person(c("Sarah", "A."), "Kelly"),
   person(c("Mary", "Ann"), "MacDowell")),
-  journal =  "bioRxiv",
   title   = "Prediction of mosquito vector abundance for three species in the
   Anopheles gambiae complex",
   year    = "2025",
-  journal = {Parasites and Vectors},
+  journal = "Parasites and Vectors",
   volume  = {18},
   pages   = {497},
   url     = "https://doi.org/10.1186/s13071-025-07070-w"
